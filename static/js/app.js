@@ -110,32 +110,85 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Encrypt Button Click (UI State Validation without fake crypto)
+  const resNote = document.getElementById('resNote');
+  const resStatus = document.getElementById('resStatus');
+  const resRawJson = document.getElementById('resRawJson');
+
+  // Encrypt Button Click (Real Backend Cryptography Integration)
   if (btnEncrypt) {
-    btnEncrypt.addEventListener('click', () => {
+    btnEncrypt.addEventListener('click', async () => {
       if (!selectedFile) {
         alert('Silakan pilih file terlebih dahulu.');
         return;
       }
 
       const password = passwordInput ? passwordInput.value : '';
-      if (!password) {
+      if (!password || password.trim() === '') {
         alert('Silakan masukkan password enkripsi.');
         return;
       }
 
       const selectedAlgo = document.querySelector('input[name="algorithm"]:checked')?.value || 'AES-256-GCM';
 
-      // Update Result UI Metadata Preview
-      if (resFilename) resFilename.textContent = `${selectedFile.name}`;
-      if (resAlgorithm) resAlgorithm.textContent = selectedAlgo;
-      if (resFilesize) resFilesize.textContent = `${formatBytes(selectedFile.size)}`;
+      // Persiapkan FormData untuk dikirimkan ke endpoint /encrypt
+      const formData = new FormData();
+      formData.append('file', selectedFile);
+      formData.append('algorithm', selectedAlgo);
+      formData.append('password', password);
 
-      if (resultEmpty) resultEmpty.style.display = 'none';
-      if (resultContent) {
-        resultContent.classList.add('active');
-        resultContent.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      // Loading state pada tombol
+      btnEncrypt.disabled = true;
+      const originalBtnHtml = btnEncrypt.innerHTML;
+      btnEncrypt.innerHTML = '<span>Memproses Enkripsi...</span>';
+
+      try {
+        const response = await fetch('/encrypt', {
+          method: 'POST',
+          body: formData
+        });
+
+        const result = await response.json();
+
+        if (!response.ok || !result.success) {
+          alert(`Enkripsi Gagal: ${result.error || 'Terjadi kesalahan sistem.'}`);
+          return;
+        }
+
+        // Tampilkan hasil metadata enkripsi
+        const data = result.data;
+        if (resFilename) resFilename.textContent = data.original_filename;
+        if (resAlgorithm) resAlgorithm.textContent = data.algorithm;
+        if (resFilesize) resFilesize.textContent = `${formatBytes(data.file_size)} (${data.file_size} bytes)`;
+        if (resStatus) resStatus.textContent = `Status: Enkripsi ${data.algorithm} Berhasil`;
+        if (resNote) resNote.textContent = `Ciphertext (${formatBytes(data.encrypted_size)}) + Tag (${data.tag_length}B) + Nonce (${data.nonce_length}B) + Salt (${data.salt_length}B) aman di memori.`;
+        
+        if (resRawJson) {
+          resRawJson.textContent = JSON.stringify({
+            status: "Encrypted Successfully",
+            algorithm: data.algorithm,
+            original_filename: data.original_filename,
+            file_size_bytes: data.file_size,
+            encrypted_size_bytes: data.encrypted_size,
+            nonce_length_bytes: data.nonce_length,
+            tag_length_bytes: data.tag_length,
+            salt_length_bytes: data.salt_length,
+            nonce_hex_preview: data.nonce_hex,
+            tag_hex_preview: data.tag_hex
+          }, null, 2);
+        }
+
+        if (resultEmpty) resultEmpty.style.display = 'none';
+        if (resultContent) {
+          resultContent.classList.add('active');
+          resultContent.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+      } catch (err) {
+        alert('Terjadi kesalahan koneksi saat memproses enkripsi.');
+      } finally {
+        btnEncrypt.disabled = false;
+        btnEncrypt.innerHTML = originalBtnHtml;
       }
     });
   }
 });
+

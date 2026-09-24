@@ -101,16 +101,16 @@
     
     <div class="result-box">
       <div class="result-empty" id="resultEmpty">
-        Belum ada proses enkripsi. Pilih file, tentukan algoritma, dan masukkan password untuk melihat pratinjau hasil.
+        Belum ada proses enkripsi. Pilih file, tentukan algoritma, dan masukkan password lalu klik Encrypt.
       </div>
 
       <div class="result-content" id="resultContent">
         <div class="result-header">
           <div class="result-status">
             <span>✓</span>
-            <strong>Status: Siap Diuji (Tahap 1 Pratinjau UI)</strong>
+            <strong id="resStatus">Status: Enkripsi Berhasil Diproses</strong>
           </div>
-          <span class="badge-tag">Format: .sdrop</span>
+          <span class="badge-tag" id="resBadge">AEAD Authenticated</span>
         </div>
 
         <div class="result-meta-list">
@@ -123,22 +123,19 @@
             <span class="result-meta-val" id="resAlgorithm">-</span>
           </div>
           <div class="result-meta-item">
-            <span class="result-meta-key">Ukuran File:</span>
+            <span class="result-meta-key">Ukuran Asli:</span>
             <span class="result-meta-val" id="resFilesize">-</span>
           </div>
           <div class="result-meta-item">
             <span class="result-meta-key">Keterangan:</span>
-            <span class="result-meta-val">Backend cryptography akan memproses ciphertext pada tahap berikutnya.</span>
+            <span class="result-meta-val" id="resNote">Ciphertext dan authentication tag 16-byte berhasil dibuat dan diverifikasi di memori backend.</span>
           </div>
         </div>
 
         <div>
-          <p class="form-hint" style="margin-bottom: 6px;">Struktur Metadata & Header Payload (Placeholder):</p>
-          <div class="result-raw">
-{
-  "status": "UI Ready",
-  "cipher": "AES-256-GCM / ChaCha20-Poly1305",
-  "note": "Proses enkripsi kriptografi sesungguhnya akan diimplementasikan pada tahap berikutnya."
+          <p class="form-hint" style="margin-bottom: 6px;">Struktur Metadata & Artefak Enkripsi (Non-Secret):</p>
+          <div class="result-raw" id="resRawJson">{
+  "status": "Siap untuk packaging .sdrop"
 }</div>
         </div>
       </div>
