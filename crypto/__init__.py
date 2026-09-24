@@ -1,8 +1,20 @@
 """
 Modul Core Encryption (Orang 1 — Core Encryption).
-Placeholder untuk tahap pengembangan kriptografi berikutnya:
-- KDF (Argon2id / PBKDF2)
-- AES-256-GCM
-- ChaCha20-Poly1305
-- Random generator menggunakan secrets/os.urandom
+Menyediakan antarmuka derivasi kunci (KDF) dan algoritma cipher modern.
 """
+
+from .kdf import (
+    generate_salt,
+    derive_key,
+    SALT_LENGTH,
+    KEY_LENGTH,
+    PBKDF2_ITERATIONS,
+)
+
+__all__ = [
+    "generate_salt",
+    "derive_key",
+    "SALT_LENGTH",
+    "KEY_LENGTH",
+    "PBKDF2_ITERATIONS",
+]
