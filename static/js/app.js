@@ -1,10 +1,5 @@
-/**
- * SecureDrop - Frontend Interaction Logic (Tahap 1: Setup & UI Dasar)
- * Mengatur interaktivitas tampilan Encrypt & Send tanpa implementasi kriptografi.
- */
-
 document.addEventListener('DOMContentLoaded', () => {
-  // Elements
+  // ambil element dom
   const dropzone = document.getElementById('dropzone');
   const fileInput = document.getElementById('fileInput');
   const fileInfoBox = document.getElementById('fileInfoBox');
@@ -22,10 +17,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const resFilename = document.getElementById('resFilename');
   const resAlgorithm = document.getElementById('resAlgorithm');
   const resFilesize = document.getElementById('resFilesize');
+  const resNote = document.getElementById('resNote');
+  const resStatus = document.getElementById('resStatus');
+  const resRawJson = document.getElementById('resRawJson');
   
   let selectedFile = null;
 
-  // Format File Size Helper
+  // FORMAT UKURAN FILE KE B/KB/MB
   function formatBytes(bytes, decimals = 2) {
     if (bytes === 0) return '0 Bytes';
     const k = 1024;
@@ -35,7 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
   }
 
-  // File Selection Handlers
+  // HANDLE PILIHAN FILE
   function handleFile(file) {
     if (!file) return;
     selectedFile = file;
@@ -48,6 +46,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (dropzone) dropzone.style.display = 'none';
   }
 
+  // RESET PILIHAN FILE
   function resetFile() {
     selectedFile = null;
     if (fileInput) fileInput.value = '';
@@ -58,7 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (resultEmpty) resultEmpty.style.display = 'block';
   }
 
-  // Dropzone Events
+  // EVENT DRAG AND DROP FILE
   if (dropzone && fileInput) {
     dropzone.addEventListener('click', () => fileInput.click());
     
@@ -90,7 +89,7 @@ document.addEventListener('DOMContentLoaded', () => {
     btnRemoveFile.addEventListener('click', resetFile);
   }
 
-  // Algorithm Radio Cards Selection
+  // PILIH ALGORITMA ENKRIPSI
   const algoCards = document.querySelectorAll('.algo-card');
   algoCards.forEach(card => {
     card.addEventListener('click', () => {
@@ -101,7 +100,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // Password Visibility Toggle
+  // TOGGLE LIHAT PASSWORD
   if (btnTogglePwd && passwordInput) {
     btnTogglePwd.addEventListener('click', () => {
       const isPassword = passwordInput.getAttribute('type') === 'password';
@@ -110,11 +109,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  const resNote = document.getElementById('resNote');
-  const resStatus = document.getElementById('resStatus');
-  const resRawJson = document.getElementById('resRawJson');
-
-  // Encrypt Button Click (Real Backend Cryptography Integration)
+  // TOMBOL ENCRYPT FILE
   if (btnEncrypt) {
     btnEncrypt.addEventListener('click', async () => {
       if (!selectedFile) {
@@ -130,13 +125,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const selectedAlgo = document.querySelector('input[name="algorithm"]:checked')?.value || 'AES-256-GCM';
 
-      // Persiapkan FormData untuk dikirimkan ke endpoint /encrypt
+      // buat form data untuk kirim file dan parameter ke backend
       const formData = new FormData();
       formData.append('file', selectedFile);
       formData.append('algorithm', selectedAlgo);
       formData.append('password', password);
 
-      // Loading state pada tombol
+      // ubah teks tombol saat proses
       btnEncrypt.disabled = true;
       const originalBtnHtml = btnEncrypt.innerHTML;
       btnEncrypt.innerHTML = '<span>Memproses Enkripsi...</span>';
@@ -159,7 +154,7 @@ document.addEventListener('DOMContentLoaded', () => {
           return;
         }
 
-        // Tampilkan hasil metadata enkripsi
+        // tampilkan ringkasan metadata di ui
         const data = result.data;
         if (resFilename) resFilename.textContent = data.original_filename;
         if (resAlgorithm) resAlgorithm.textContent = data.algorithm;
@@ -197,4 +192,3 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 });
-

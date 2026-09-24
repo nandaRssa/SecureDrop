@@ -1,28 +1,23 @@
-"""
-Main application routes handling UI rendering and encryption service integration.
-"""
-
 from flask import Blueprint, render_template, redirect, url_for, request, jsonify
 from services.encryption_service import encrypt_file_data
 
 main_bp = Blueprint("main", __name__)
 
 
+# ROUTE UTAMA REDIRECT KE ENCRYPT
 @main_bp.route("/")
 def index():
-    """Redirect route utama ke halaman Encrypt & Send."""
     return redirect(url_for("main.encrypt"))
 
 
+# HALAMAN DAN ENDPOINT ENCRYPT & SEND
 @main_bp.route("/encrypt", methods=["GET", "POST"])
 def encrypt():
-    """
-    Halaman Encrypt & Send dan endpoint pemrosesan enkripsi file (Modul Orang 1).
-    """
+    # jika get request tampilkan halaman
     if request.method == "GET":
         return render_template("encrypt.html", active_page="encrypt")
 
-    # Handler POST: Proses enkripsi file
+    # proses enkripsi file jika post request
     try:
         if "file" not in request.files:
             return jsonify({"success": False, "error": "File tidak ditemukan."}), 400
@@ -31,11 +26,12 @@ def encrypt():
         if not uploaded_file or uploaded_file.filename == "":
             return jsonify({"success": False, "error": "File tidak ditemukan."}), 400
 
+        # baca isi file biner
         file_bytes = uploaded_file.read()
         password = request.form.get("password", "")
         algorithm = request.form.get("algorithm", "AES-256-GCM")
 
-        # Panggil service enkripsi (PBKDF2 -> Derived Key -> Cipher AEAD)
+        # jalankan enkripsi lewat service
         result = encrypt_file_data(
             file_bytes=file_bytes,
             password=password,
@@ -43,7 +39,7 @@ def encrypt():
             original_filename=uploaded_file.filename
         )
 
-        # Kembalikan response metadata non-secret untuk pratinjau hasil enkripsi UI
+        # kirim metadata hasil enkripsi ke frontend
         return jsonify({
             "success": True,
             "message": "Enkripsi berhasil diproses.",
@@ -63,18 +59,16 @@ def encrypt():
     except (ValueError, TypeError) as err:
         return jsonify({"success": False, "error": str(err)}), 400
     except Exception:
-        # Error generic yang aman tanpa membocorkan trace/secret internal
         return jsonify({"success": False, "error": "Enkripsi gagal diproses."}), 500
 
 
+# HALAMAN RECEIVE & DECRYPT (PLACEHOLDER)
 @main_bp.route("/decrypt")
 def decrypt():
-    """Halaman Receive & Decrypt (Placeholder Modul Orang 2)."""
     return render_template("decrypt.html", active_page="decrypt")
 
 
+# HALAMAN TESTING (PLACEHOLDER)
 @main_bp.route("/testing")
 def testing():
-    """Halaman Security Testing (Placeholder Modul Orang 3)."""
     return render_template("testing.html", active_page="testing")
-

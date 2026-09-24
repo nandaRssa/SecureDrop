@@ -1,7 +1,4 @@
-"""
-Modul Core Encryption (Orang 1 — Core Encryption).
-Menyediakan antarmuka derivasi kunci (KDF), algoritma cipher AES-256-GCM, dan ChaCha20-Poly1305.
-"""
+# modul core encryption (kdf, aes-gcm, chacha20-poly1305)
 
 from .kdf import (
     generate_salt,
@@ -50,4 +47,3 @@ __all__ = [
     "CHACHA20_NONCE_LENGTH",
     "CHACHA20_TAG_LENGTH",
 ]
-
