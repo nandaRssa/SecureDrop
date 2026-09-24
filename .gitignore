@@ -1,0 +1,29 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# Virtual Environment
+venv/
+.venv/
+env/
+ENV/
+
+# Secrets & Environment variables (Security Rule: Never commit secrets)
+.env
+*.key
+*.pem
+*.secret
+secrets/
+
+# IDE & OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Application generated temporary files
+uploads/
+temp/
+*.sdrop
