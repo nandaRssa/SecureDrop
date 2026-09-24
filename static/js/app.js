@@ -147,7 +147,12 @@ document.addEventListener('DOMContentLoaded', () => {
           body: formData
         });
 
-        const result = await response.json();
+        let result;
+        try {
+          result = await response.json();
+        } catch (jsonErr) {
+          result = { success: false, error: `Server response error (${response.status} ${response.statusText})` };
+        }
 
         if (!response.ok || !result.success) {
           alert(`Enkripsi Gagal: ${result.error || 'Terjadi kesalahan sistem.'}`);
@@ -183,7 +188,8 @@ document.addEventListener('DOMContentLoaded', () => {
           resultContent.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
       } catch (err) {
-        alert('Terjadi kesalahan koneksi saat memproses enkripsi.');
+        console.error('Fetch error:', err);
+        alert(`Gagal menghubungi server: ${err.message || 'Pastikan server Flask aktif dan berjalan.'}`);
       } finally {
         btnEncrypt.disabled = false;
         btnEncrypt.innerHTML = originalBtnHtml;
