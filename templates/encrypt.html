@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+
+{% block title %}Encrypt & Send — SecureDrop{% endblock %}
+
+{% block content %}
+<section id="section-encrypt-send" aria-labelledby="section-heading">
+  <div class="section-header">
+    <h2 class="section-title" id="section-heading">Encrypt & Send</h2>
+    <p class="section-desc">Enkripsi file secara aman menggunakan algoritma authenticated cipher modern.</p>
+  </div>
+
+  <!-- Step 1: Upload File -->
+  <div class="card">
+    <h3 class="card-title">
+      <span class="step-number">1</span>
+      Upload File
+    </h3>
+    
+    <input type="file" id="fileInput" style="display: none;">
+    
+    <div class="dropzone" id="dropzone" tabindex="0" role="button" aria-label="Pilih atau drop file untuk dienkripsi">
+      <div class="dropzone-icon">📁</div>
+      <p class="dropzone-text">Klik untuk memilih file atau seret file ke area ini</p>
+      <p class="dropzone-subtext">Mendukung semua tipe file (dokumen, gambar, arsip binary)</p>
+    </div>
+
+    <div class="file-info-box" id="fileInfoBox">
+      <div class="file-meta-group">
+        <span class="file-name" id="fileNameDisplay">-</span>
+        <div class="file-details">
+          <span id="fileSizeDisplay">Ukuran: -</span>
+          <span id="fileTypeDisplay">Tipe: -</span>
+        </div>
+      </div>
+      <button type="button" class="btn-remove-file" id="btnRemoveFile" title="Batalkan pilihan file">Ganti File</button>
+    </div>
+  </div>
+
+  <!-- Step 2: Select Algorithm -->
+  <div class="card">
+    <h3 class="card-title">
+      <span class="step-number">2</span>
+      Pilih Algoritma Enkripsi
+    </h3>
+    <div class="algorithm-grid">
+      <label class="algo-card selected">
+        <input type="radio" name="algorithm" value="AES-256-GCM" checked>
+        <div class="algo-info">
+          <span class="algo-title">AES-256-GCM</span>
+          <span class="algo-desc">Galois/Counter Mode (Authenticated Encryption, 256-bit key). Standar industri performa tinggi.</span>
+        </div>
+      </label>
+
+      <label class="algo-card">
+        <input type="radio" name="algorithm" value="ChaCha20-Poly1305">
+        <div class="algo-info">
+          <span class="algo-title">ChaCha20-Poly1305</span>
+          <span class="algo-desc">Stream cipher modern + Poly1305 MAC authenticator. Cepat dan aman pada arsitektur non-hardware AES.</span>
+        </div>
+      </label>
+    </div>
+  </div>
+
+  <!-- Step 3: Password -->
+  <div class="card">
+    <h3 class="card-title">
+      <span class="step-number">3</span>
+      Password Kunci Enkripsi
+    </h3>
+    <div class="form-group">
+      <label for="passwordInput" class="form-label">
+        <span>Password / Passphrase</span>
+      </label>
+      <div class="password-input-wrapper">
+        <input 
+          type="password" 
+          id="passwordInput" 
+          class="input-text" 
+          placeholder="Masukkan password untuk mengenkripsi file..." 
+          autocomplete="off"
+        >
+        <button type="button" class="btn-toggle-pwd" id="btnTogglePwd" aria-label="Toggle password visibility">SHOW</button>
+      </div>
+      <p class="form-hint">🔒 Password diproses secara aman di memori lokal, tanpa secret hardcode.</p>
+    </div>
+  </div>
+
+  <!-- Step 4: Encrypt Button -->
+  <div class="card">
+    <button type="button" class="btn-primary" id="btnEncrypt">
+      <span>Encrypt</span>
+    </button>
+  </div>
+
+  <!-- Step 5: Result Area -->
+  <div class="card">
+    <h3 class="card-title">
+      <span class="step-number">5</span>
+      Hasil Enkripsi (Result Payload)
+    </h3>
+    
+    <div class="result-box">
+      <div class="result-empty" id="resultEmpty">
+        Belum ada proses enkripsi. Pilih file, tentukan algoritma, dan masukkan password untuk melihat pratinjau hasil.
+      </div>
+
+      <div class="result-content" id="resultContent">
+        <div class="result-header">
+          <div class="result-status">
+            <span>✓</span>
+            <strong>Status: Siap Diuji (Tahap 1 Pratinjau UI)</strong>
+          </div>
+          <span class="badge-tag">Format: .sdrop</span>
+        </div>
+
+        <div class="result-meta-list">
+          <div class="result-meta-item">
+            <span class="result-meta-key">File Terpilih:</span>
+            <span class="result-meta-val" id="resFilename">-</span>
+          </div>
+          <div class="result-meta-item">
+            <span class="result-meta-key">Algoritma Dipilih:</span>
+            <span class="result-meta-val" id="resAlgorithm">-</span>
+          </div>
+          <div class="result-meta-item">
+            <span class="result-meta-key">Ukuran File:</span>
+            <span class="result-meta-val" id="resFilesize">-</span>
+          </div>
+          <div class="result-meta-item">
+            <span class="result-meta-key">Keterangan:</span>
+            <span class="result-meta-val">Backend cryptography akan memproses ciphertext pada tahap berikutnya.</span>
+          </div>
+        </div>
+
+        <div>
+          <p class="form-hint" style="margin-bottom: 6px;">Struktur Metadata & Header Payload (Placeholder):</p>
+          <div class="result-raw">
+{
+  "status": "UI Ready",
+  "cipher": "AES-256-GCM / ChaCha20-Poly1305",
+  "note": "Proses enkripsi kriptografi sesungguhnya akan diimplementasikan pada tahap berikutnya."
+}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</section>
+{% endblock %}
