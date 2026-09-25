@@ -20,6 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const resNote = document.getElementById('resNote');
   const resStatus = document.getElementById('resStatus');
   const resRawJson = document.getElementById('resRawJson');
+  const downloadSdrop = document.getElementById('downloadSdrop');
   
   let selectedFile = null;
 
@@ -175,6 +176,13 @@ document.addEventListener('DOMContentLoaded', () => {
             nonce_hex_preview: data.nonce_hex,
             tag_hex_preview: data.tag_hex
           }, null, 2);
+        }
+
+        if (downloadSdrop && data.sdrop_base64) {
+          const packageBytes = Uint8Array.from(atob(data.sdrop_base64), char => char.charCodeAt(0));
+          downloadSdrop.href = URL.createObjectURL(new Blob([packageBytes], { type: 'application/octet-stream' }));
+          downloadSdrop.download = data.sdrop_filename || `${data.original_filename}.sdrop`;
+          downloadSdrop.style.display = 'inline-block';
         }
 
         if (resultEmpty) resultEmpty.style.display = 'none';

@@ -7,21 +7,63 @@
   <div class="section-header">
     <h2 class="section-title" id="section-heading">Receive & Decrypt</h2>
     <p class="section-desc">Modul untuk menerima dan mendekripsi file terenkripsi SecureDrop (.sdrop).</p>
+    <p class="form-hint">Modul Orang 2 — Receive &amp; Decrypt</p>
   </div>
 
+  <form id="decryptForm" class="card">
+    <h3 class="card-title"><span class="step-number">1</span>Upload File .sdrop</h3>
+    <div class="form-group">
+      <label for="sdropFile" class="form-label">Paket SecureDrop</label>
+      <input id="sdropFile" name="file" class="input-text" type="file" accept=".sdrop,application/octet-stream,application/json" required>
+    </div>
+
+    <h3 class="card-title"><span class="step-number">2</span>Password / RSA Private Key</h3>
+    <div class="form-group">
+      <label for="decryptPassword" class="form-label">Password untuk paket biasa</label>
+      <input id="decryptPassword" name="password" class="input-text" type="password" autocomplete="off" placeholder="Masukkan password .sdrop">
+      <label for="privateKey" class="form-label" style="margin-top: 12px;">Private key PEM untuk paket hybrid (opsional)</label>
+      <input id="privateKey" name="private_key" class="input-text" type="file" accept=".pem,.key,text/plain">
+      <p class="form-hint">Private key diproses hanya untuk permintaan ini dan tidak disimpan.</p>
+    </div>
+    <button type="submit" class="btn-primary" id="btnDecrypt"><span>Decrypt</span></button>
+  </form>
+
   <div class="card">
-    <h3 class="card-title">
-      <span class="step-number">ℹ</span>
-      Status Pengembangan
-    </h3>
+    <h3 class="card-title"><span class="step-number">3</span>Hasil</h3>
     <div class="result-box">
-      <div class="result-empty" style="text-align: left; padding: 10px 0;">
-        <p style="color: var(--text-primary); font-weight: 600; margin-bottom: 8px;">Modul Orang 2 — Receive & Decrypt</p>
-        <p style="color: var(--text-secondary); font-size: 13px; line-height: 1.6;">
-          Halaman ini merupakan placeholder navigasi untuk modul dekripsi file. Fitur dekripsi, verifikasi tag otentikasi (AEAD MAC), dan pemulihan kunci melalui KDF akan dikembangkan pada tahap selanjutnya.
-        </p>
-      </div>
+      <div id="decryptResult" class="result-empty">Upload paket lalu klik Decrypt.</div>
+      <a id="downloadDecrypted" class="btn-primary" style="display: none; text-decoration: none;" download>Download File Asli</a>
     </div>
   </div>
 </section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.getElementById('decryptForm').addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const button = document.getElementById('btnDecrypt');
+    const result = document.getElementById('decryptResult');
+    const download = document.getElementById('downloadDecrypted');
+    button.disabled = true;
+    result.textContent = 'Memverifikasi paket dan authentication tag...';
+    download.style.display = 'none';
+    try {
+      const response = await fetch('/decrypt', { method: 'POST', body: new FormData(form) });
+      const body = await response.json();
+      if (!response.ok || !body.success) throw new Error(body.error || 'Decryption gagal.');
+      const data = body.data;
+      const binary = Uint8Array.from(atob(data.file_base64), char => char.charCodeAt(0));
+      download.href = URL.createObjectURL(new Blob([binary], { type: 'application/octet-stream' }));
+      download.download = data.original_filename;
+      download.style.display = 'inline-block';
+      result.textContent = `Success — ${data.original_filename} (${data.file_size} bytes), authentication terverifikasi.`;
+    } catch (error) {
+      result.textContent = `Authentication Failed: ${error.message}`;
+    } finally {
+      button.disabled = false;
+    }
+  });
+</script>
 {% endblock %}
