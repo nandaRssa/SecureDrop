@@ -10,7 +10,7 @@ AES_NONCE_LENGTH: int = 12
 AES_TAG_LENGTH: int = 16
 
 
-# STRUKTUR HASIL ENKRIPSI AES-GCM
+#HASIL ENKRIPSI AES-GCM
 @dataclass(frozen=True)
 class AESGCMResult:
     nonce: bytes
