@@ -4,6 +4,9 @@ from typing import Optional
 from cryptography.hazmat.primitives.ciphers.aead import ChaCha20Poly1305
 from cryptography.exceptions import InvalidTag
 
+# Catatan keamanan: nonce baru dibuat setiap enkripsi agar payload tidak
+# direuse dengan kunci yang sama, sesuai pola AEAD ChaCha20-Poly1305.
+
 # konstanta chacha20-poly1305
 CHACHA20_KEY_LENGTH: int = 32
 CHACHA20_NONCE_LENGTH: int = 12

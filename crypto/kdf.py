@@ -3,6 +3,9 @@ from typing import Union
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.primitives import hashes
 
+# Catatan keamanan: derivasi kunci menggunakan PBKDF2-HMAC-SHA256
+# untuk menjaga kuatnya password terhadap brute-force dan serangan offline.
+
 # konfigurasi default kdf
 SALT_LENGTH: int = 16
 KEY_LENGTH: int = 32
