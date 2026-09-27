@@ -1,6 +1,6 @@
 import base64
 
-from flask import Blueprint, render_template, redirect, url_for, request, jsonify
+from flask import Blueprint, current_app, render_template, redirect, url_for, request, jsonify
 from services.encryption_service import encrypt_file_data
 from services.sdrop_service import (
     AuthenticationError,
@@ -9,6 +9,7 @@ from services.sdrop_service import (
     decrypt_sdrop,
     package_encryption_result,
 )
+from services.security_testing_service import run_security_testing_suite
 
 main_bp = Blueprint("main", __name__)
 
@@ -106,3 +107,18 @@ def decrypt():
 @main_bp.route("/testing")
 def testing():
     return render_template("testing.html", active_page="testing")
+
+
+@main_bp.route("/testing/run", methods=["POST"])
+def testing_run():
+    password = request.form.get("password", "")
+    try:
+        report = run_security_testing_suite(
+            password=password,
+            quick=current_app.config.get("TESTING", False),
+        )
+        return jsonify({"success": True, "message": "Security testing selesai.", "data": report}), 200
+    except (ValueError, TypeError) as err:
+        return jsonify({"success": False, "error": str(err)}), 400
+    except Exception:
+        return jsonify({"success": False, "error": "Security testing gagal diproses."}), 500
