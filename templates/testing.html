@@ -6,21 +6,102 @@
 <section id="section-testing" aria-labelledby="section-heading">
   <div class="section-header">
     <h2 class="section-title" id="section-heading">Security Testing & Analysis</h2>
-    <p class="section-desc">Modul pengujian empiris dan analisis keamanan kriptografi.</p>
+    <p class="section-desc">Modul pengujian empiris dan analisis keamanan kriptografi untuk sistem O1 + O2.</p>
+    <p class="form-hint">Modul Orang 3 — Security Testing</p>
+  </div>
+
+  <form id="securityTestingForm" class="card">
+    <h3 class="card-title">
+      <span class="step-number">1</span>
+      Jalankan Security Testing
+    </h3>
+    <div class="testing-controls">
+      <div class="form-group">
+        <label for="securityTestingPassword" class="form-label">Password pengujian</label>
+        <div class="password-input-wrapper">
+          <input
+            type="password"
+            id="securityTestingPassword"
+            class="input-text"
+            placeholder="Masukkan password untuk suite uji dekripsi dan benchmark"
+            autocomplete="off"
+            required
+          >
+          <button type="button" class="btn-toggle-pwd" id="btnToggleTestingPwd" aria-label="Toggle password visibility">SHOW</button>
+        </div>
+        <p class="form-hint">Suite ini menjalankan 10 input, benchmark 1 KB/1 MB/10 MB, avalanche, entropy, histogram, dan integrity test.</p>
+      </div>
+      <button type="submit" class="btn-primary" id="btnRunSecurityTesting">Run Security Testing</button>
+    </div>
+  </form>
+
+  <div class="card">
+    <h3 class="card-title">
+      <span class="step-number">2</span>
+      Ringkasan Eksekusi
+    </h3>
+    <div class="metric-grid" id="securitySummaryGrid">
+      <div class="metric-card metric-placeholder">Belum ada hasil. Jalankan testing untuk melihat metrik aktual.</div>
+    </div>
   </div>
 
   <div class="card">
     <h3 class="card-title">
-      <span class="step-number">ℹ</span>
-      Status Pengembangan
+      <span class="step-number">3</span>
+      Kebenaran Decryption
     </h3>
-    <div class="result-box">
-      <div class="result-empty" style="text-align: left; padding: 10px 0;">
-        <p style="color: var(--text-primary); font-weight: 600; margin-bottom: 8px;">Modul Orang 3 — Security Testing</p>
-        <p style="color: var(--text-secondary); font-size: 13px; line-height: 1.6;">
-          Halaman ini merupakan placeholder navigasi untuk modul pengujian keamanan. Fitur Avalanche Effect Analysis, Shannon Entropy Test, Byte Distribution Histogram, dan Encryption Benchmark akan dikembangkan pada tahap selanjutnya.
-        </p>
-      </div>
+    <div class="table-wrap" id="roundTripTableWrap">
+      <div class="result-empty">Hasil round-trip akan muncul di sini.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3 class="card-title">
+      <span class="step-number">4</span>
+      Benchmark AES-256-GCM vs ChaCha20-Poly1305
+    </h3>
+    <div class="table-wrap" id="benchmarkTableWrap">
+      <div class="result-empty">Benchmark belum dijalankan.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3 class="card-title">
+      <span class="step-number">5</span>
+      Avalanche Effect
+    </h3>
+    <div class="table-wrap" id="avalancheTableWrap">
+      <div class="result-empty">Hasil avalanche akan muncul setelah testing dijalankan.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3 class="card-title">
+      <span class="step-number">6</span>
+      Entropy dan Byte Histogram
+    </h3>
+    <div id="entropyHistogramWrap">
+      <div class="result-empty">Entropy dan histogram belum tersedia.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3 class="card-title">
+      <span class="step-number">7</span>
+      Security / Integrity Test
+    </h3>
+    <div class="table-wrap" id="integrityTableWrap">
+      <div class="result-empty">Integrity test akan ditampilkan di sini.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3 class="card-title">
+      <span class="step-number">8</span>
+      Analisis Perbandingan
+    </h3>
+    <div class="table-wrap" id="comparisonTableWrap">
+      <div class="result-empty">Perbandingan algoritma menunggu hasil benchmark.</div>
     </div>
   </div>
 </section>
