@@ -20,6 +20,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const resNote = document.getElementById('resNote');
   const resStatus = document.getElementById('resStatus');
   const resRawJson = document.getElementById('resRawJson');
+  const resCiphertextPreview = document.getElementById('resCiphertextPreview');
+  const btnCopyB64 = document.getElementById('btnCopyB64');
+  const btnCopyHex = document.getElementById('btnCopyHex');
   const downloadSdrop = document.getElementById('downloadSdrop');
   
   let selectedFile = null;
@@ -114,13 +117,13 @@ document.addEventListener('DOMContentLoaded', () => {
   if (btnEncrypt) {
     btnEncrypt.addEventListener('click', async () => {
       if (!selectedFile) {
-        alert('Silakan pilih file terlebih dahulu.');
+        alert('Silakan pilih file terlebih dahulu');
         return;
       }
 
       const password = passwordInput ? passwordInput.value : '';
       if (!password || password.trim() === '') {
-        alert('Silakan masukkan password enkripsi.');
+        alert('Silakan masukkan password enkripsi');
         return;
       }
 
@@ -151,7 +154,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (!response.ok || !result.success) {
-          alert(`Enkripsi Gagal: ${result.error || 'Terjadi kesalahan sistem.'}`);
+          alert(`Enkripsi Gagal: ${result.error || 'Terjadi kesalahan sistem'}`);
           return;
         }
 
@@ -161,8 +164,32 @@ document.addEventListener('DOMContentLoaded', () => {
         if (resAlgorithm) resAlgorithm.textContent = data.algorithm;
         if (resFilesize) resFilesize.textContent = `${formatBytes(data.file_size)} (${data.file_size} bytes)`;
         if (resStatus) resStatus.textContent = `Status: Enkripsi ${data.algorithm} Berhasil`;
-        if (resNote) resNote.textContent = `Ciphertext (${formatBytes(data.encrypted_size)}) + Tag (${data.tag_length}B) + Nonce (${data.nonce_length}B) + Salt (${data.salt_length}B) aman di memori.`;
+        if (resNote) resNote.textContent = `Ciphertext (${formatBytes(data.encrypted_size)}) + Tag (${data.tag_length}B) + Nonce (${data.nonce_length}B) + Salt (${data.salt_length}B) aman di memori`;
         
+        if (resCiphertextPreview && data.ciphertext_base64) {
+          resCiphertextPreview.textContent = data.ciphertext_base64.length > 300
+            ? data.ciphertext_base64.slice(0, 300) + '... (panjang penuh: ' + data.ciphertext_base64.length + ' karakter)'
+            : data.ciphertext_base64;
+        }
+
+        if (btnCopyB64 && data.ciphertext_base64) {
+          btnCopyB64.onclick = async () => {
+            await navigator.clipboard.writeText(data.ciphertext_base64);
+            const ori = btnCopyB64.textContent;
+            btnCopyB64.textContent = 'Tersalin!';
+            setTimeout(() => { btnCopyB64.textContent = ori; }, 1800);
+          };
+        }
+
+        if (btnCopyHex && data.ciphertext_hex) {
+          btnCopyHex.onclick = async () => {
+            await navigator.clipboard.writeText(data.ciphertext_hex);
+            const ori = btnCopyHex.textContent;
+            btnCopyHex.textContent = 'Tersalin!';
+            setTimeout(() => { btnCopyHex.textContent = ori; }, 1800);
+          };
+        }
+
         if (resRawJson) {
           resRawJson.textContent = JSON.stringify({
             status: "Encrypted Successfully",
@@ -192,7 +219,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       } catch (err) {
         console.error('Fetch error:', err);
-        alert(`Gagal menghubungi server: ${err.message || 'Pastikan server Flask aktif dan berjalan.'}`);
+        alert(`Gagal menghubungi server: ${err.message || 'Pastikan server Flask aktif dan berjalan'}`);
       } finally {
         btnEncrypt.disabled = false;
         btnEncrypt.innerHTML = originalBtnHtml;
@@ -265,7 +292,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (fileList.length === 0) {
       securityTestingFileList.className = 'file-list-empty';
-      securityTestingFileList.textContent = 'Belum ada file dipilih.';
+      securityTestingFileList.textContent = 'Belum ada file dipilih';
       return;
     }
 
@@ -301,7 +328,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const count = securityTestingCorpus.length;
     if (count < 1) {
       roundTripSummary.className = 'result-empty';
-      roundTripSummary.textContent = 'Pilih minimal 1 file untuk menjalankan Security Testing.';
+      roundTripSummary.textContent = 'Pilih minimal 1 file untuk menjalankan Security Testing';
     }
   }
 
@@ -313,7 +340,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }).join('');
     return `
       <div class="histogram-block">
-        <div class="histogram-title">${escapeHtml(title)}</div>
+        <div class="histogram-title">
+          <span>${escapeHtml(title)}</span>
+          <span class="histogram-scroll-hint">geser &rarr;</span>
+        </div>
         <div class="histogram-chart">${bars}</div>
       </div>
     `;
@@ -347,18 +377,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const normalizedName = String(file.name || '').trim();
     if (!normalizedName) {
-      alert('File tidak valid. Silakan pilih file dengan nama yang benar.');
+      alert('File tidak valid, silakan pilih file dengan nama yang benar');
       return;
     }
 
     if (file.size === 0) {
-      alert(`File ${normalizedName} tidak boleh kosong.`);
+      alert(`File ${normalizedName} tidak boleh kosong`);
       return;
     }
 
     const key = getFileKey(file);
     if (securityTestingCorpus.some((item) => item.key === key)) {
-      alert(`File duplikat terdeteksi: ${normalizedName}. Silakan pilih file yang berbeda.`);
+      alert(`File duplikat terdeteksi: ${normalizedName}, silakan pilih file yang berbeda`);
       return;
     }
 
@@ -475,7 +505,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       if (securityTestingCorpus.length < 1) {
-        alert('Minimal 1 file diperlukan untuk menjalankan Security Testing.');
+        alert('Minimal 1 file diperlukan untuk menjalankan Security Testing');
         return;
       }
 
@@ -502,7 +532,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (!response.ok || !result.success) {
-          alert(`Security testing gagal: ${result.error || 'Terjadi kesalahan sistem.'}`);
+          alert(`Security testing gagal: ${result.error || 'Terjadi kesalahan sistem'}`);
           return;
         }
 

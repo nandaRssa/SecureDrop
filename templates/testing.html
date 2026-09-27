@@ -1,13 +1,14 @@
-{% extends "base.html" %}
-
-{% block title %}Security Testing — SecureDrop{% endblock %}
-
-{% block content %}
+{% extends "base.html" %} {% block title %}Security Testing{% endblock %} {%
+block content %}
 <section id="section-testing" aria-labelledby="section-heading">
   <div class="section-header">
-    <h2 class="section-title" id="section-heading">Security Testing & Analysis</h2>
-    <p class="section-desc">Modul pengujian empiris dan analisis keamanan kriptografi untuk sistem O1 + O2.</p>
-    <p class="form-hint">Modul Orang 3 — Security Testing</p>
+    <h2 class="section-title" id="section-heading">
+      Security Testing & Analysis
+    </h2>
+    <p class="section-desc">
+      Pengujian empiris integritas, kinerja, dan analisis keamanan kriptografi
+      sistem SecureDrop
+    </p>
   </div>
 
   <form id="securityTestingForm" class="card">
@@ -17,30 +18,39 @@
     </h3>
     <div class="testing-controls">
       <div class="form-group">
-        <label for="securityTestingFileInput" class="form-label">File untuk round-trip testing</label>
+        <label for="securityTestingFileInput" class="form-label"
+          >File untuk round-trip testing</label
+        >
         <input
           type="file"
           id="securityTestingFileInput"
           class="input-text"
           multiple
           accept=".pdf,.png,.jpg,.jpeg,.txt,.csv,.docx,.doc,.zip,.json,.md,.bmp,.gif,.webp,.xls,.xlsx,.ppt,.pptx,application/pdf,image/*,text/plain,text/csv,application/json,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-word.document.macroEnabled.12,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.presentationml.presentation,application/vnd.ms-powerpoint"
-        >
-        <p class="form-hint">Pilih satu atau banyak file sekaligus. File berikutnya bisa ditambahkan lewat upload berikutnya. PDF dan image didukung.</p>
+        />
+        <p class="form-hint">Pilih satu atau banyak file sekaligus</p>
       </div>
 
       <div class="file-list-panel">
         <div class="file-list-header">
           <strong>Testing Files</strong>
-          <span class="badge-tag" id="securityTestingFileCount">Testing Files: 0 files</span>
+          <span class="badge-tag" id="securityTestingFileCount"
+            >Testing Files: 0 files</span
+          >
         </div>
-        <div id="securityTestingFileList" class="file-list-empty">Belum ada file dipilih.</div>
+        <div id="securityTestingFileList" class="file-list-empty">
+          Belum ada file dipilih
+        </div>
       </div>
 
       <div class="file-list-note">
-        For the full O3 test scenario, prepare 10 distinct files.
+        Untuk hasil pengujian komprehensif, siapkan minimal 10 file dengan tipe
+        yang beragam
       </div>
 
-      <button type="submit" class="btn-primary" id="btnRunSecurityTesting">Run Security Testing</button>
+      <button type="submit" class="btn-primary" id="btnRunSecurityTesting">
+        Run Security Testing
+      </button>
     </div>
   </form>
 
@@ -50,7 +60,9 @@
       File Round-Trip Testing
     </h3>
     <div class="result-box">
-      <div id="roundTripSummary" class="result-empty">Pilih minimal 1 file untuk menjalankan Security Testing.</div>
+      <div id="roundTripSummary" class="result-empty">
+        Pilih minimal 1 file untuk menjalankan Security Testing
+      </div>
     </div>
   </div>
 
@@ -60,7 +72,9 @@
       Ringkasan Eksekusi
     </h3>
     <div class="metric-grid" id="securitySummaryGrid">
-      <div class="metric-card metric-placeholder">Belum ada hasil. Jalankan testing untuk melihat metrik aktual.</div>
+      <div class="metric-card metric-placeholder">
+        Belum ada hasil, jalankan testing untuk melihat metrik aktual
+      </div>
     </div>
   </div>
 
@@ -70,7 +84,7 @@
       Kebenaran Decryption
     </h3>
     <div class="table-wrap" id="roundTripTableWrap">
-      <div class="result-empty">Hasil round-trip akan muncul di sini.</div>
+      <div class="result-empty">Hasil round-trip akan muncul di sini</div>
     </div>
   </div>
 
@@ -80,7 +94,7 @@
       Benchmark AES-256-GCM vs ChaCha20-Poly1305
     </h3>
     <div class="table-wrap" id="benchmarkTableWrap">
-      <div class="result-empty">Benchmark belum dijalankan.</div>
+      <div class="result-empty">Benchmark belum dijalankan</div>
     </div>
   </div>
 
@@ -90,7 +104,9 @@
       Avalanche Effect
     </h3>
     <div class="table-wrap" id="avalancheTableWrap">
-      <div class="result-empty">Hasil avalanche akan muncul setelah testing dijalankan.</div>
+      <div class="result-empty">
+        Hasil avalanche akan muncul setelah testing dijalankan
+      </div>
     </div>
   </div>
 
@@ -100,7 +116,7 @@
       Entropy dan Byte Histogram
     </h3>
     <div id="entropyHistogramWrap">
-      <div class="result-empty">Entropy dan histogram belum tersedia.</div>
+      <div class="result-empty">Entropy dan histogram belum tersedia</div>
     </div>
   </div>
 
@@ -110,7 +126,7 @@
       Security / Integrity Test
     </h3>
     <div class="table-wrap" id="integrityTableWrap">
-      <div class="result-empty">Integrity test akan ditampilkan di sini.</div>
+      <div class="result-empty">Integrity test akan ditampilkan di sini</div>
     </div>
   </div>
 
@@ -120,7 +136,9 @@
       Analisis Perbandingan
     </h3>
     <div class="table-wrap" id="comparisonTableWrap">
-      <div class="result-empty">Perbandingan algoritma menunggu hasil benchmark.</div>
+      <div class="result-empty">
+        Perbandingan algoritma menunggu hasil benchmark
+      </div>
     </div>
   </div>
 </section>

@@ -36,7 +36,7 @@ def test_decrypt_placeholder_page_loads(client):
     response = client.get("/decrypt")
     assert response.status_code == 200
     assert b"Receive &amp; Decrypt" in response.data or b"Receive & Decrypt" in response.data
-    assert b"Modul Orang 2" in response.data
+    assert b"Upload File .sdrop" in response.data
 
 
 def test_testing_placeholder_page_loads(client):
@@ -44,7 +44,7 @@ def test_testing_placeholder_page_loads(client):
     response = client.get("/testing")
     assert response.status_code == 200
     assert b"Security Testing" in response.data
-    assert b"Modul Orang 3" in response.data
+    assert b"Jalankan Security Testing" in response.data
 
 
 def test_navigation_active_class(client):

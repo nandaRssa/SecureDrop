@@ -81,17 +81,15 @@ body {
 }
 
 .brand-icon {
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   background-color: var(--accent-primary);
   color: var(--accent-text);
-  font-weight: 700;
-  font-size: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: var(--radius-sm);
-  font-family: var(--font-mono);
+  flex-shrink: 0;
 }
 
 .brand-title {
@@ -662,13 +660,80 @@ body {
     gap: 12px;
     align-items: flex-start;
   }
-  
+
   .algorithm-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .nav-list {
     flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  .nav-link {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+
+  /* Tabel & grafik — horizontal scroll agar tidak offscreen */
+  .table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    padding-bottom: 4px;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  .data-table {
+    min-width: 600px;
+  }
+
+  /* Histogram wrapper scroll horizontal */
+  .histogram-block {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    box-sizing: border-box;
+  }
+
+  /* Histogram grid stack ke 1 kolom di HP */
+  .histogram-grid {
+    grid-template-columns: 1fr;
+    min-width: 0;
+    width: 100%;
+  }
+
+  /* Metric grid — 2 kolom di HP, bukan auto-fit yang terlalu lebar */
+  .metric-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* Result meta item — wrap key/val ke baris baru agar tidak terpotong */
+  .result-meta-item {
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  /* Result header wrap */
+  .result-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  /* File info box stack vertikal */
+  .file-info-box.active {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  /* Card padding lebih kecil di HP */
+  .card {
+    padding: 16px;
   }
 }
 
@@ -769,6 +834,8 @@ body {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  min-width: 0;
+  width: 100%;
 }
 
 .card-inline {
@@ -776,6 +843,10 @@ body {
   border: 1px solid var(--border-color);
   border-radius: var(--radius-sm);
   padding: 16px;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .card-inline-header {
@@ -784,13 +855,16 @@ body {
   align-items: center;
   gap: 12px;
   margin-bottom: 12px;
+  flex-wrap: wrap;
 }
 
 .histogram-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 12px;
   margin-top: 12px;
+  min-width: 0;
+  width: 100%;
 }
 
 .histogram-block {
@@ -798,27 +872,72 @@ body {
   border: 1px solid var(--border-color);
   border-radius: var(--radius-sm);
   padding: 12px;
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Custom scrollbar horizontal yang jelas */
+.histogram-block::-webkit-scrollbar,
+.table-wrap::-webkit-scrollbar {
+  height: 6px;
+}
+
+.histogram-block::-webkit-scrollbar-track,
+.table-wrap::-webkit-scrollbar-track {
+  background: var(--surface-2);
+  border-radius: 3px;
+}
+
+.histogram-block::-webkit-scrollbar-thumb,
+.table-wrap::-webkit-scrollbar-thumb {
+  background: #3A3A3A;
+  border-radius: 3px;
+}
+
+.histogram-block::-webkit-scrollbar-thumb:hover,
+.table-wrap::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-primary);
 }
 
 .histogram-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   font-size: 12px;
   color: var(--text-secondary);
   margin-bottom: 10px;
 }
 
+.histogram-scroll-hint {
+  font-size: 10px;
+  color: var(--accent-primary);
+  font-family: var(--font-mono);
+  background-color: var(--surface-2);
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid var(--border-color);
+  white-space: nowrap;
+}
+
 .histogram-chart {
   display: grid;
-  grid-template-columns: repeat(256, 1fr);
+  grid-template-columns: repeat(256, 3px);
   gap: 1px;
   align-items: end;
   height: 140px;
-  overflow-x: auto;
-  min-width: 100%;
+  width: max-content;
+  min-width: 800px;
+  padding-bottom: 4px;
 }
 
 .histogram-bar {
   display: block;
   background-color: var(--accent-primary);
-  min-width: 2px;
-  opacity: 0.72;
+  width: 3px;
+  min-width: 3px;
+  opacity: 0.75;
 }

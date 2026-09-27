@@ -1,68 +1,110 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="id">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="SecureDrop - Aplikasi Enkripsi File dan Pengujian Keamanan Kriptografi Modern">
-  <title>{% block title %}SecureDrop{% endblock %}</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-</head>
-<body>
-
-  <!-- App Header -->
-  <header class="app-header">
-    <div class="container header-inner">
-      <div class="brand">
-        <div class="brand-icon">SD</div>
-        <h1 class="brand-title">SecureDrop</h1>
-        <span class="badge-role">Orang 1 — Core Encryption</span>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="SecureDrop - Aplikasi Enkripsi File dan Pengujian Keamanan Kriptografi Modern"
+    />
+    <title>{% block title %}SecureDrop{% endblock %}</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/style.css') }}?v=3.1"
+    />
+  </head>
+  <body>
+    <!-- App Header -->
+    <header class="app-header">
+      <div class="container header-inner">
+        <div class="brand">
+          <h1 class="brand-title">SecureDrop</h1>
+          <span class="badge-role">Authenticated Encryption</span>
+        </div>
       </div>
-      <div class="header-tags">
-        <span class="badge-tag">Tahap 1: Setup & UI</span>
-      </div>
-    </div>
-  </header>
+    </header>
 
-  <!-- Main Container -->
-  <main class="container app-content">
-    
-    <!-- Main Navigation Bar -->
-    <nav class="app-nav" aria-label="Main Navigation">
-      <ul class="nav-list">
-        <li class="nav-item">
-          <a href="{{ url_for('main.encrypt') }}" class="nav-link {% if active_page == 'encrypt' %}active{% endif %}">
-            <span>Encrypt & Send</span>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a href="{{ url_for('main.decrypt') }}" class="nav-link {% if active_page == 'decrypt' %}active{% endif %}">
-            <span>Receive & Decrypt</span>
-            <span class="nav-badge">Tahap 2</span>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a href="{{ url_for('main.testing') }}" class="nav-link {% if active_page == 'testing' %}active{% endif %}">
-            <span>Security Testing</span>
-            <span class="nav-badge">Tahap 3</span>
-          </a>
-        </li>
-      </ul>
-    </nav>
+    <!-- Main Container -->
+    <main class="container app-content">
+      <!-- Main Navigation Bar -->
+      <nav class="app-nav" aria-label="Main Navigation">
+        <ul class="nav-list">
+          <li class="nav-item">
+            <a
+              href="{{ url_for('main.encrypt') }}"
+              class="nav-link {% if active_page == 'encrypt' %}active{% endif %}"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="15"
+                height="15"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <rect x="3" y="11" width="18" height="11" rx="2" />
+                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+              </svg>
+              <span>Encrypt &amp; Send</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a
+              href="{{ url_for('main.decrypt') }}"
+              class="nav-link {% if active_page == 'decrypt' %}active{% endif %}"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="15"
+                height="15"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <rect x="3" y="11" width="18" height="11" rx="2" />
+                <path d="M7 11V7a5 5 0 0 1 6.93-4.95" />
+                <circle cx="17" cy="7" r="3" />
+              </svg>
+              <span>Receive &amp; Decrypt</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a
+              href="{{ url_for('main.testing') }}"
+              class="nav-link {% if active_page == 'testing' %}active{% endif %}"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="15"
+                height="15"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path
+                  d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v11m0 0H3m6 0h6m6 0h-6m0 0v6m0-6V9"
+                />
+              </svg>
+              <span>Security Testing</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
 
-    <!-- Page Body Content -->
-    {% block content %}{% endblock %}
+      <!-- Page Body Content -->
+      {% block content %}{% endblock %}
+    </main>
 
-  </main>
-
-  <!-- Footer -->
-  <footer class="app-footer">
-    <div class="container footer-inner">
-      <span>SecureDrop — Sistem Kriptografi & Keamanan File Modern</span>
-      <span>Stage 1: Basic Architecture & UI</span>
-    </div>
-  </footer>
-
-  <script src="{{ url_for('static', filename='js/app.js') }}"></script>
-  {% block scripts %}{% endblock %}
-</body>
+    <script src="{{ url_for('static', filename='js/app.js') }}?v=3.1"></script>
+    {% block scripts %}{% endblock %}
+  </body>
 </html>

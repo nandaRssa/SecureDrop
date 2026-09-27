@@ -26,11 +26,11 @@ def encrypt():
 
     try:
         if "file" not in request.files:
-            return jsonify({"success": False, "error": "File tidak ditemukan."}), 400
+            return jsonify({"success": False, "error": "File tidak ditemukan"}), 400
 
         uploaded_file = request.files["file"]
         if not uploaded_file or uploaded_file.filename == "":
-            return jsonify({"success": False, "error": "File tidak ditemukan."}), 400
+            return jsonify({"success": False, "error": "File tidak ditemukan"}), 400
 
         file_bytes = uploaded_file.read()
         password = request.form.get("password", "")
@@ -48,7 +48,7 @@ def encrypt():
         # kirim metadata hasil enkripsi ke frontend
         return jsonify({
             "success": True,
-            "message": "Enkripsi berhasil diproses.",
+            "message": "Enkripsi berhasil diproses",
             "data": {
                 "original_filename": result.original_filename,
                 "algorithm": result.algorithm,
@@ -59,6 +59,8 @@ def encrypt():
                 "tag_length": len(result.tag),
                 "nonce_hex": result.nonce.hex(),
                 "tag_hex": result.tag.hex(),
+                "ciphertext_base64": base64.b64encode(result.ciphertext).decode("ascii"),
+                "ciphertext_hex": result.ciphertext.hex(),
                 "sdrop_filename": f"{result.original_filename}.sdrop",
                 "sdrop_base64": base64.b64encode(sdrop_bytes).decode("ascii")
             }
@@ -67,7 +69,7 @@ def encrypt():
     except (ValueError, TypeError) as err:
         return jsonify({"success": False, "error": str(err)}), 400
     except Exception:
-        return jsonify({"success": False, "error": "Enkripsi gagal diproses."}), 500
+        return jsonify({"success": False, "error": "Enkripsi gagal diproses"}), 500
 
 
 # HALAMAN RECEIVE & DECRYPT (PLACEHOLDER)
@@ -78,7 +80,7 @@ def decrypt():
 
     try:
         if "file" not in request.files or not request.files["file"].filename:
-            return jsonify({"success": False, "error": "File .sdrop tidak ditemukan."}), 400
+            return jsonify({"success": False, "error": "File .sdrop tidak ditemukan"}), 400
         package_bytes = request.files["file"].read()
         private_key = request.files.get("private_key")
         if private_key and private_key.filename:
@@ -88,7 +90,7 @@ def decrypt():
             plaintext, filename = decrypt_sdrop(package_bytes, password)
         return jsonify({
             "success": True,
-            "message": "Decryption berhasil dan authentication tag terverifikasi.",
+            "message": "Decryption berhasil dan authentication tag terverifikasi",
             "data": {
                 "original_filename": filename,
                 "file_size": len(plaintext),
@@ -100,7 +102,7 @@ def decrypt():
     except (SdropFormatError, ValueError, TypeError) as err:
         return jsonify({"success": False, "error": str(err)}), 400
     except Exception:
-        return jsonify({"success": False, "error": "Decryption gagal diproses."}), 500
+        return jsonify({"success": False, "error": "Decryption gagal diproses"}), 500
 
 
 # HALAMAN TESTING (PLACEHOLDER)
@@ -119,8 +121,8 @@ def testing_run():
             quick=current_app.config.get("TESTING", False),
             files=uploaded_files,
         )
-        return jsonify({"success": True, "message": "Security testing selesai.", "data": report}), 200
+        return jsonify({"success": True, "message": "Security testing selesai", "data": report}), 200
     except (ValueError, TypeError) as err:
         return jsonify({"success": False, "error": str(err)}), 400
     except Exception:
-        return jsonify({"success": False, "error": "Security testing gagal diproses."}), 500
+        return jsonify({"success": False, "error": "Security testing gagal diproses"}), 500
