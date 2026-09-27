@@ -111,11 +111,13 @@ def testing():
 
 @main_bp.route("/testing/run", methods=["POST"])
 def testing_run():
-    password = request.form.get("password", "")
+    uploaded_files = request.files.getlist("files")
+    if not uploaded_files and request.files.get("file") is not None:
+        uploaded_files = [request.files.get("file")]
     try:
         report = run_security_testing_suite(
-            password=password,
             quick=current_app.config.get("TESTING", False),
+            files=uploaded_files,
         )
         return jsonify({"success": True, "message": "Security testing selesai.", "data": report}), 200
     except (ValueError, TypeError) as err:

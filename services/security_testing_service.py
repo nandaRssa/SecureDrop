@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import base64
+import hashlib
 import json
 import math
 import secrets
@@ -29,6 +30,53 @@ class SecuritySample:
     name: str
     description: str
     data: bytes
+
+
+@dataclass(frozen=True)
+class UploadedSecurityFile:
+    name: str
+    size: int
+    data: bytes
+    fingerprint: str
+
+
+def _validate_uploaded_files(files: Sequence[Any]) -> list[UploadedSecurityFile]:
+    if not isinstance(files, Sequence):
+        raise TypeError("Daftar file harus berupa sequence.")
+
+    uploaded_files: list[UploadedSecurityFile] = []
+    seen_fingerprints: set[str] = set()
+    for index, file_obj in enumerate(files, start=1):
+        if file_obj is None:
+            raise ValueError(f"File ke-{index} tidak valid.")
+
+        filename = str(getattr(file_obj, "filename", "") or "").strip()
+        if not filename:
+            raise ValueError(f"File ke-{index} tidak memiliki nama yang valid.")
+
+        file_bytes = file_obj.read()
+        if not isinstance(file_bytes, (bytes, bytearray)):
+            raise TypeError(f"File {filename} harus terbaca sebagai bytes.")
+
+        raw_bytes = bytes(file_bytes)
+        if not raw_bytes:
+            raise ValueError(f"File {filename} tidak boleh kosong.")
+
+        fingerprint = hashlib.sha256(raw_bytes).hexdigest()
+        if fingerprint in seen_fingerprints:
+            raise ValueError(f"File duplikat terdeteksi: {filename}. Corpus harus berisi file yang berbeda.")
+        seen_fingerprints.add(fingerprint)
+
+        uploaded_files.append(
+            UploadedSecurityFile(
+                name=filename,
+                size=len(raw_bytes),
+                data=raw_bytes,
+                fingerprint=fingerprint,
+            )
+        )
+
+    return uploaded_files
 
 
 def build_security_corpus() -> list[SecuritySample]:
@@ -94,32 +142,87 @@ def _serialize_package(result: Any) -> bytes:
     return package_encryption_result(result)
 
 
-def run_round_trip_suite(password: str, samples: Sequence[SecuritySample] | None = None) -> list[dict[str, Any]]:
-    corpus = list(samples or build_security_corpus())
+def _internal_suite_password(label: str) -> str:
+    return f"securedrop-o3::{label}::{secrets.token_hex(16)}"
+
+
+def run_round_trip_suite(files: Sequence[Any] | None = None, samples: Sequence[SecuritySample] | None = None) -> list[dict[str, Any]]:
+    corpus: list[dict[str, Any]] = []
+
+    if files is not None:
+        uploaded_files = _validate_uploaded_files(files)
+        if len(uploaded_files) < 1:
+            raise ValueError("Minimal 1 file diperlukan untuk menjalankan Security Testing.")
+
+        corpus = [
+            {
+                "name": uploaded_file.name,
+                "description": f"Uploaded file: {uploaded_file.name}",
+                "data": uploaded_file.data,
+            }
+            for uploaded_file in uploaded_files
+        ]
+    else:
+        corpus = [
+            {
+                "name": sample.name,
+                "description": sample.description,
+                "data": sample.data,
+            }
+            for sample in (samples or build_security_corpus())
+        ]
+
     rows: list[dict[str, Any]] = []
+    internal_password = _internal_suite_password("round-trip")
 
     for sample in corpus:
         for algorithm in (ALGO_AES_GCM, ALGO_CHACHA20):
-            result = encrypt_file_data(sample.data, password, algorithm=algorithm, original_filename=sample.name)
+            result = encrypt_file_data(sample["data"], internal_password, algorithm=algorithm, original_filename=sample["name"])
             package_bytes = _serialize_package(result)
-            plaintext, filename = decrypt_sdrop(package_bytes, password)
+            plaintext, filename = decrypt_sdrop(package_bytes, internal_password)
             rows.append(
                 {
-                    "sample": sample.name,
-                    "description": sample.description,
+                    "sample": sample["name"],
+                    "description": sample["description"],
                     "algorithm": algorithm,
-                    "file_size": len(sample.data),
+                    "file_size": len(sample["data"]),
                     "ciphertext_size": len(result.ciphertext),
                     "package_size": len(package_bytes),
-                    "round_trip_ok": plaintext == sample.data and filename == sample.name,
+                    "round_trip_ok": plaintext == sample["data"] and filename == sample["name"],
                 }
             )
 
     return rows
 
 
+def summarize_round_trip_rows(round_trip_rows: Sequence[dict[str, Any]]) -> list[dict[str, Any]]:
+    grouped: dict[str, dict[str, Any]] = {}
+
+    for row in round_trip_rows:
+        entry = grouped.setdefault(
+            str(row["sample"]),
+            {
+                "name": str(row["sample"]),
+                "size": int(row["file_size"]),
+                "statuses": [],
+                "passed": True,
+            },
+        )
+        entry["statuses"].append(str(row["algorithm"]))
+        entry["passed"] = bool(entry["passed"]) and bool(row["round_trip_ok"])
+
+    return [
+        {
+            "name": item["name"],
+            "size": item["size"],
+            "status": "PASS" if item["passed"] else "FAIL",
+            "passed": item["passed"],
+        }
+        for item in grouped.values()
+    ]
+
+
 def benchmark_algorithms(
-    password: str,
     sizes: Sequence[int] | None = None,
     repeats: int = 1,
 ) -> list[dict[str, Any]]:
@@ -127,8 +230,9 @@ def benchmark_algorithms(
     if repeats < 1:
         raise ValueError("repeats harus minimal 1.")
 
+    benchmark_password = _internal_suite_password("benchmark")
     salt = generate_salt()
-    key = derive_key(password=password, salt=salt)
+    key = derive_key(password=benchmark_password, salt=salt)
     rows: list[dict[str, Any]] = []
 
     for size in benchmark_sizes:
@@ -211,12 +315,13 @@ def avalanche_analysis() -> list[dict[str, Any]]:
     return rows
 
 
-def entropy_and_histogram_analysis(password: str) -> dict[str, Any]:
+def entropy_and_histogram_analysis() -> dict[str, Any]:
     sample = build_security_corpus()[0]
     rows: list[dict[str, Any]] = []
+    internal_password = _internal_suite_password("entropy")
 
     for algorithm in (ALGO_AES_GCM, ALGO_CHACHA20):
-        result = encrypt_file_data(sample.data, password, algorithm=algorithm, original_filename=sample.name)
+        result = encrypt_file_data(sample.data, internal_password, algorithm=algorithm, original_filename=sample.name)
         plaintext_entropy = round(_shannon_entropy(sample.data), 4)
         ciphertext_entropy = round(_shannon_entropy(result.ciphertext), 4)
         rows.append(
@@ -234,16 +339,17 @@ def entropy_and_histogram_analysis(password: str) -> dict[str, Any]:
     return {"sample": sample.name, "results": rows}
 
 
-def integrity_analysis(password: str) -> list[dict[str, Any]]:
+def integrity_analysis() -> list[dict[str, Any]]:
     sample = build_security_corpus()[2]
-    result = encrypt_file_data(sample.data, password, algorithm=ALGO_AES_GCM, original_filename=sample.name)
+    internal_password = _internal_suite_password("integrity")
+    result = encrypt_file_data(sample.data, internal_password, algorithm=ALGO_AES_GCM, original_filename=sample.name)
     package_bytes = _serialize_package(result)
     document = json.loads(package_bytes.decode("utf-8"))
 
     checks: list[dict[str, Any]] = []
 
     try:
-        decrypt_sdrop(package_bytes, f"{password}-wrong")
+        decrypt_sdrop(package_bytes, f"{internal_password}-wrong")
         checks.append({"name": "wrong_password", "passed": False, "detail": "Dekripsi tidak seharusnya berhasil."})
     except AuthenticationError as exc:
         checks.append({"name": "wrong_password", "passed": True, "detail": str(exc)})
@@ -254,13 +360,13 @@ def integrity_analysis(password: str) -> list[dict[str, Any]]:
     tampered_document["ciphertext"] = base64.b64encode(ciphertext_bytes).decode("ascii")
     tampered_payload = json.dumps(tampered_document, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
     try:
-        decrypt_sdrop(tampered_payload, password)
+        decrypt_sdrop(tampered_payload, internal_password)
         checks.append({"name": "tampered_ciphertext", "passed": False, "detail": "Paket yang dimodifikasi tidak seharusnya lolos."})
     except AuthenticationError as exc:
         checks.append({"name": "tampered_ciphertext", "passed": True, "detail": str(exc)})
 
     try:
-        decrypt_sdrop(b'{"format":"SecureDrop","version":1,"mode":"password"}', password)
+        decrypt_sdrop(b'{"format":"SecureDrop","version":1,"mode":"password"}', internal_password)
         checks.append({"name": "corrupt_package", "passed": False, "detail": "Paket rusak tidak seharusnya lolos."})
     except (AuthenticationError, SdropFormatError, ValueError) as exc:
         checks.append({"name": "corrupt_package", "passed": True, "detail": str(exc)})
@@ -305,17 +411,16 @@ def compare_algorithms(benchmark_rows: Sequence[dict[str, Any]]) -> list[dict[st
 
 
 def run_security_testing_suite(
-    password: str,
+    files: Sequence[Any] | None = None,
     quick: bool = False,
     benchmark_sizes: Sequence[int] | None = None,
     benchmark_repeats: int = 1,
 ) -> dict[str, Any]:
-    if not isinstance(password, str) or not password.strip():
-        raise ValueError("Password pengujian wajib diisi.")
-
     sizes = tuple(benchmark_sizes or (QUICK_BENCHMARK_SIZES if quick else FULL_BENCHMARK_SIZES))
-    round_trip_rows = run_round_trip_suite(password=password)
-    benchmark_rows = benchmark_algorithms(password=password, sizes=sizes, repeats=benchmark_repeats)
+    if files is not None and len(files) == 0:
+        raise ValueError("Minimal 1 file diperlukan untuk menjalankan Security Testing.")
+    round_trip_rows = run_round_trip_suite(files=files)
+    benchmark_rows = benchmark_algorithms(sizes=sizes, repeats=benchmark_repeats)
 
     return {
         "quick_mode": quick,
@@ -329,11 +434,12 @@ def run_security_testing_suite(
             for sample in build_security_corpus()
         ],
         "round_trip": round_trip_rows,
+        "file_round_trip": summarize_round_trip_rows(round_trip_rows),
         "benchmark": benchmark_rows,
         "comparison": compare_algorithms(benchmark_rows),
         "avalanche": avalanche_analysis(),
-        "entropy": entropy_and_histogram_analysis(password),
-        "integrity": integrity_analysis(password),
+        "entropy": entropy_and_histogram_analysis(),
+        "integrity": integrity_analysis(),
         "round_trip_success": sum(1 for row in round_trip_rows if row["round_trip_ok"]),
         "round_trip_total": len(round_trip_rows),
     }

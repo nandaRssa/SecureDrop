@@ -201,9 +201,10 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   const securityTestingForm = document.getElementById('securityTestingForm');
-  const securityTestingPassword = document.getElementById('securityTestingPassword');
-  const btnToggleTestingPwd = document.getElementById('btnToggleTestingPwd');
-  const btnRunSecurityTesting = document.getElementById('btnRunSecurityTesting');
+  const securityTestingFileInput = document.getElementById('securityTestingFileInput');
+  const securityTestingFileList = document.getElementById('securityTestingFileList');
+  const securityTestingFileCount = document.getElementById('securityTestingFileCount');
+  const roundTripSummary = document.getElementById('roundTripSummary');
   const securitySummaryGrid = document.getElementById('securitySummaryGrid');
   const roundTripTableWrap = document.getElementById('roundTripTableWrap');
   const benchmarkTableWrap = document.getElementById('benchmarkTableWrap');
@@ -211,6 +212,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const entropyHistogramWrap = document.getElementById('entropyHistogramWrap');
   const integrityTableWrap = document.getElementById('integrityTableWrap');
   const comparisonTableWrap = document.getElementById('comparisonTableWrap');
+
+  const securityTestingCorpus = [];
 
   function escapeHtml(value) {
     return String(value)
@@ -240,6 +243,66 @@ document.addEventListener('DOMContentLoaded', () => {
         <span class="metric-help">${escapeHtml(item.help || '')}</span>
       </div>
     `).join('');
+  }
+
+  function getFileKey(file) {
+    return [file.name, file.size, file.lastModified].join('::');
+  }
+
+  function formatTestingBytes(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    const units = ['Bytes', 'KB', 'MB', 'GB'];
+    const index = Math.floor(Math.log(bytes) / Math.log(1024));
+    return `${(bytes / Math.pow(1024, index)).toFixed(index === 0 ? 0 : 2)} ${units[index]}`;
+  }
+
+  function renderSelectedFiles(fileList) {
+    if (!securityTestingFileList || !securityTestingFileCount) {
+      return;
+    }
+
+    securityTestingFileCount.textContent = `Testing Files: ${fileList.length} file${fileList.length === 1 ? '' : 's'}`;
+
+    if (fileList.length === 0) {
+      securityTestingFileList.className = 'file-list-empty';
+      securityTestingFileList.textContent = 'Belum ada file dipilih.';
+      return;
+    }
+
+    securityTestingFileList.className = 'file-list';
+    securityTestingFileList.innerHTML = fileList.map((file) => `
+      <div class="file-list-item">
+        <span class="file-list-name">${escapeHtml(file.name)}</span>
+        <div class="file-list-meta">
+          <span class="file-list-size">${formatTestingBytes(file.size)}</span>
+          <button type="button" class="file-list-remove" data-remove-file="${escapeHtml(file.key)}">Hapus</button>
+        </div>
+      </div>
+    `).join('');
+
+    securityTestingFileList.querySelectorAll('[data-remove-file]').forEach((button) => {
+      button.addEventListener('click', () => {
+        const targetKey = button.getAttribute('data-remove-file');
+        const index = securityTestingCorpus.findIndex((item) => item.key === targetKey);
+        if (index >= 0) {
+          securityTestingCorpus.splice(index, 1);
+          renderSelectedFiles(securityTestingCorpus);
+          updateRoundTripPlaceholder();
+        }
+      });
+    });
+  }
+
+  function updateRoundTripPlaceholder() {
+    if (!roundTripSummary) {
+      return;
+    }
+
+    const count = securityTestingCorpus.length;
+    if (count < 1) {
+      roundTripSummary.className = 'result-empty';
+      roundTripSummary.textContent = 'Pilih minimal 1 file untuk menjalankan Security Testing.';
+    }
   }
 
   function renderHistogram(histogram, title) {
@@ -275,6 +338,40 @@ document.addEventListener('DOMContentLoaded', () => {
       </div>
     `).join('');
     return `<div class="stacked-cards">${cards}</div>`;
+  }
+
+  function addTestingFile(file) {
+    if (!file) {
+      return;
+    }
+
+    const normalizedName = String(file.name || '').trim();
+    if (!normalizedName) {
+      alert('File tidak valid. Silakan pilih file dengan nama yang benar.');
+      return;
+    }
+
+    if (file.size === 0) {
+      alert(`File ${normalizedName} tidak boleh kosong.`);
+      return;
+    }
+
+    const key = getFileKey(file);
+    if (securityTestingCorpus.some((item) => item.key === key)) {
+      alert(`File duplikat terdeteksi: ${normalizedName}. Silakan pilih file yang berbeda.`);
+      return;
+    }
+
+    securityTestingCorpus.push({
+      key,
+      file,
+      name: normalizedName,
+      size: file.size,
+      type: file.type || 'application/octet-stream',
+    });
+
+    renderSelectedFiles(securityTestingCorpus);
+    updateRoundTripPlaceholder();
   }
 
   function updateTestingView(report) {
@@ -361,25 +458,24 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  if (btnToggleTestingPwd && securityTestingPassword) {
-    btnToggleTestingPwd.addEventListener('click', () => {
-      const isPassword = securityTestingPassword.getAttribute('type') === 'password';
-      securityTestingPassword.setAttribute('type', isPassword ? 'text' : 'password');
-      btnToggleTestingPwd.textContent = isPassword ? 'HIDE' : 'SHOW';
-    });
-  }
-
   if (securityTestingForm) {
+    if (securityTestingFileInput) {
+      securityTestingFileInput.addEventListener('change', (event) => {
+        const files = Array.from(event.target.files || []);
+        files.forEach((file) => addTestingFile(file));
+        event.target.value = '';
+      });
+    }
+
     securityTestingForm.addEventListener('submit', async (event) => {
       event.preventDefault();
 
-      if (!btnRunSecurityTesting || !securityTestingPassword) {
+      if (!btnRunSecurityTesting) {
         return;
       }
 
-      const password = securityTestingPassword.value;
-      if (!password || password.trim() === '') {
-        alert('Silakan masukkan password pengujian terlebih dahulu.');
+      if (securityTestingCorpus.length < 1) {
+        alert('Minimal 1 file diperlukan untuk menjalankan Security Testing.');
         return;
       }
 
@@ -389,7 +485,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
       try {
         const formData = new FormData();
-        formData.append('password', password);
+        securityTestingCorpus.forEach((item) => {
+          formData.append('files', item.file, item.name);
+        });
 
         const response = await fetch('/testing/run', {
           method: 'POST',
@@ -409,6 +507,35 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         updateTestingView(result.data);
+        if (roundTripSummary) {
+          const summaryRows = result.data.file_round_trip || [];
+          const passCount = summaryRows.filter((row) => row.passed).length;
+          const failCount = summaryRows.length - passCount;
+          roundTripSummary.innerHTML = `
+            <div class="result-empty" style="text-align:left; padding:0;">
+              <p style="margin-bottom:8px; color: var(--text-primary); font-weight: 600;">${summaryRows.length} files tested</p>
+              <p style="margin-bottom:8px;">${passCount} PASS</p>
+              <p style="margin-bottom:12px;">${failCount} FAIL</p>
+              <div class="table-wrap">
+                <table class="data-table">
+                  <thead>
+                    <tr><th>File</th><th>Size</th><th>Algorithm</th><th>Status</th></tr>
+                  </thead>
+                  <tbody>
+                    ${summaryRows.map((row) => `
+                      <tr>
+                        <td>${escapeHtml(row.name)}</td>
+                        <td>${escapeHtml(row.size)}</td>
+                        <td>Round-trip</td>
+                        <td><span class="status-pill ${row.passed ? 'status-ok' : 'status-fail'}">${row.status}</span></td>
+                      </tr>
+                    `).join('')}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          `;
+        }
         if (securitySummaryGrid) {
           securitySummaryGrid.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
@@ -421,4 +548,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   }
+
+  renderSelectedFiles(securityTestingCorpus);
+  updateRoundTripPlaceholder();
 });
