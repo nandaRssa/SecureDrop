@@ -13,14 +13,15 @@ Aplikasi web sederhana untuk enkripsi dan dekripsi file secara aman menggunakan 
 SecureDrop adalah aplikasi berbasis web yang membantu pengguna mengamankan file dokumen atau gambar sebelum dibagikan. File dienkripsi langsung di memori dan dikemas ke dalam format file container `.sdrop` yang menyatukan ciphertext, metadata keamanan, dan verifikasi integritas data.
 
 Aplikasi mendukung dua metode pengelolaan kunci:
-1. **Password Biasa (Symmetric KDF)**: Kunci enkripsi diturunkan dari password/passphrase menggunakan KDF yang aman (Argon2id).
-2. **Enkripsi Hibrida (Hybrid Cryptography)**: File dienkripsi menggunakan kunci sesi acak 256-bit (AES-256-GCM), lalu kunci sesi tersebut dibungkus (*key wrapping*) menggunakan Public Key RSA penerima dengan skema RSA-OAEP (SHA-256).
+
+1. **Password Biasa (Symmetric KDF)**: Kunci enkripsi diturunkan dari password/passphrase menggunakan KDF yang aman (PBKDF2-HMAC-SHA256, 600.000 iterasi).
+2. **Enkripsi Hibrida (Hybrid Cryptography)**: File dienkripsi menggunakan kunci sesi acak 256-bit (AES-256-GCM), lalu kunci sesi tersebut dibungkus (_key wrapping_) menggunakan Public Key RSA penerima dengan skema RSA-OAEP (SHA-256).
 
 Fitur utama yang tersedia:
 
 - **Encrypt & Send**: mengenkripsi file asli menjadi paket `.sdrop` menggunakan mode password (AES-256-GCM / ChaCha20-Poly1305) atau mode enkripsi hibrida (RSA-OAEP + AES-256-GCM), dilengkapi generator kunci RSA 2048-bit bawaan.
-- **Receive & Decrypt**: mengembalikan paket `.sdrop` ke bentuk aslinya dengan memverifikasi password atau mengunggah Private Key RSA penerima, disertai validasi integritas (*authentication tag*).
-- **Security Testing**: pengujian mandiri untuk mengukur kecepatan enkripsi, keutuhan file, entropi Shannon, dan efek avalanche (*bit-flip*).
+- **Receive & Decrypt**: mengembalikan paket `.sdrop` ke bentuk aslinya dengan memverifikasi password atau mengunggah Private Key RSA penerima, disertai validasi integritas (_authentication tag_).
+- **Security Testing**: pengujian mandiri untuk mengukur kecepatan enkripsi, keutuhan file, entropi Shannon, dan efek avalanche (_bit-flip_).
 
 ## Cara Instalasi
 
@@ -29,6 +30,7 @@ Pastikan komputer sudah terpasang Python versi 3.10 ke atas.
 1. Buka terminal atau Command Prompt di folder proyek ini.
 
 2. Buat virtual environment (opsional tapi disarankan):
+
    ```bash
    python -m venv venv
    ```
@@ -55,11 +57,13 @@ Pastikan komputer sudah terpasang Python versi 3.10 ke atas.
 ## Cara Menjalankan
 
 1. Jalankan server aplikasi dengan perintah:
+
    ```bash
    python app.py
    ```
 
 2. Buka browser dan akses alamat berikut:
+
    ```
    http://127.0.0.1:5000/
    ```

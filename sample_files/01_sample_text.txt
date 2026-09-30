@@ -1,0 +1,27 @@
+SecureDrop - File Pengujian Teks Biasa
+========================================
+
+Mata Kuliah : Keamanan Informasi
+Topik       : Enkripsi Algoritma Modern
+Algoritma   : AES-256-GCM dan ChaCha20-Poly1305
+
+Baris data ke-01: Ini adalah contoh plaintext yang akan dienkripsi.
+Baris data ke-02: Ini adalah contoh plaintext yang akan dienkripsi.
+Baris data ke-03: Ini adalah contoh plaintext yang akan dienkripsi.
+Baris data ke-04: Ini adalah contoh plaintext yang akan dienkripsi.
+Baris data ke-05: Ini adalah contoh plaintext yang akan dienkripsi.
+Baris data ke-06: Ini adalah contoh plaintext yang akan dienkripsi.
+Baris data ke-07: Ini adalah contoh plaintext yang akan dienkripsi.
+Baris data ke-08: Ini adalah contoh plaintext yang akan dienkripsi.
+Baris data ke-09: Ini adalah contoh plaintext yang akan dienkripsi.
+Baris data ke-10: Ini adalah contoh plaintext yang akan dienkripsi.
+Baris data ke-11: Ini adalah contoh plaintext yang akan dienkripsi.
+Baris data ke-12: Ini adalah contoh plaintext yang akan dienkripsi.
+Baris data ke-13: Ini adalah contoh plaintext yang akan dienkripsi.
+Baris data ke-14: Ini adalah contoh plaintext yang akan dienkripsi.
+Baris data ke-15: Ini adalah contoh plaintext yang akan dienkripsi.
+Baris data ke-16: Ini adalah contoh plaintext yang akan dienkripsi.
+Baris data ke-17: Ini adalah contoh plaintext yang akan dienkripsi.
+Baris data ke-18: Ini adalah contoh plaintext yang akan dienkripsi.
+Baris data ke-19: Ini adalah contoh plaintext yang akan dienkripsi.
+Baris data ke-20: Ini adalah contoh plaintext yang akan dienkripsi.

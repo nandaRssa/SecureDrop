@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>SecureDrop - Laporan Pengujian</title>
+</head>
+<body>
+  <h1>SecureDrop: Laporan Pengujian Keamanan</h1>
+  <h2>Hasil Avalanche Effect</h2>
+  <table border="1">
+    <tr><th>Algoritma</th><th>Skenario</th><th>Bit Berubah (%)</th></tr>
+    <tr><td>AES-256-GCM</td><td>1-bit plaintext flip</td><td>49.8%</td></tr>
+    <tr><td>ChaCha20-Poly1305</td><td>1-bit plaintext flip</td><td>50.2%</td></tr>
+    <tr><td>AES-256-GCM</td><td>1-bit key flip</td><td>50.1%</td></tr>
+    <tr><td>ChaCha20-Poly1305</td><td>1-bit key flip</td><td>49.9%</td></tr>
+  </table>
+  <p>Semua nilai mendekati 50% &mdash; membuktikan difusi sempurna.</p>
+</body>
+</html>

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<securedrop_config>
+  <application name="SecureDrop" version="1.0">
+    <encryption>
+      <algorithm default="AES-256-GCM">
+        <supported>AES-256-GCM</supported>
+        <supported>ChaCha20-Poly1305</supported>
+      </algorithm>
+      <kdf iterations="600000" hash="SHA-256">PBKDF2-HMAC</kdf>
+      <salt_length_bytes>16</salt_length_bytes>
+      <nonce_length_bytes>12</nonce_length_bytes>
+      <tag_length_bytes>16</tag_length_bytes>
+    </encryption>
+    <output format=".sdrop" encoding="Base64"/>
+  </application>
+</securedrop_config>

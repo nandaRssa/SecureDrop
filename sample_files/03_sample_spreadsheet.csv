@@ -1,0 +1,6 @@
+id,nama_file,algoritma,ukuran_kb,waktu_enkripsi_ms,waktu_dekripsi_ms,entropi_plaintext,entropi_ciphertext
+1,dokumen.pdf,AES-256-GCM,1024,1.2,1.1,4.52,7.99
+2,foto.png,AES-256-GCM,2048,2.1,2.0,5.81,7.99
+3,laporan.docx,ChaCha20-Poly1305,512,0.8,0.7,4.1,7.98
+4,data.csv,ChaCha20-Poly1305,128,0.3,0.3,3.9,7.97
+5,arsip.zip,AES-256-GCM,10240,9.5,9.2,7.95,8.0

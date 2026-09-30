@@ -1,0 +1,29 @@
+{
+  "aplikasi": "SecureDrop",
+  "versi": "1.0.0",
+  "mahasiswa": [
+    {
+      "nama": "Nabinadya Abinazzahra",
+      "npm": "247006111079"
+    },
+    {
+      "nama": "Annisa Safira Wibowo",
+      "npm": "247006111101"
+    },
+    {
+      "nama": "Nanda Raissa",
+      "npm": "247006111108"
+    }
+  ],
+  "algoritma_didukung": [
+    "AES-256-GCM",
+    "ChaCha20-Poly1305"
+  ],
+  "kdf": "PBKDF2-HMAC-SHA256",
+  "iterasi_kdf": 600000,
+  "format_output": ".sdrop",
+  "data_sensitif": {
+    "nik_sample": "3204XXXXXXXXXXXXXXX",
+    "rekening_sample": "1234-XXXX-XXXX-5678"
+  }
+}
