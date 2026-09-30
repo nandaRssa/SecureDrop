@@ -97,12 +97,138 @@ document.addEventListener('DOMContentLoaded', () => {
   const algoCards = document.querySelectorAll('.algo-card');
   algoCards.forEach(card => {
     card.addEventListener('click', () => {
+      const radio = card.querySelector('input[type="radio"]');
+      if (radio && radio.disabled) return;
       algoCards.forEach(c => c.classList.remove('selected'));
       card.classList.add('selected');
-      const radio = card.querySelector('input[type="radio"]');
       if (radio) radio.checked = true;
     });
   });
+
+  // MODE ENKRIPSI TOGGLE (PASSWORD vs HYBRID)
+  const btnModePassword = document.getElementById('btnModePassword');
+  const btnModeHybrid = document.getElementById('btnModeHybrid');
+  const sectionPasswordMode = document.getElementById('sectionPasswordMode');
+  const sectionHybridMode = document.getElementById('sectionHybridMode');
+  const btnGenRsaKeys = document.getElementById('btnGenRsaKeys');
+  const publicKeyFileInput = document.getElementById('publicKeyFileInput');
+  const publicKeyTextInput = document.getElementById('publicKeyTextInput');
+  let currentEncryptionMode = 'password';
+
+  function setEncryptionMode(mode) {
+    currentEncryptionMode = mode;
+    const chachaRadio = document.querySelector('input[name="algorithm"][value="ChaCha20-Poly1305"]');
+    const chachaCard = chachaRadio?.closest('.algo-card');
+
+    if (mode === 'password') {
+      if (btnModePassword) {
+        btnModePassword.style.background = 'var(--surface-2)';
+        btnModePassword.style.color = 'var(--text-primary)';
+      }
+      if (btnModeHybrid) {
+        btnModeHybrid.style.background = 'var(--surface-1)';
+        btnModeHybrid.style.color = 'var(--text-secondary)';
+      }
+      if (sectionPasswordMode) sectionPasswordMode.style.display = 'block';
+      if (sectionHybridMode) sectionHybridMode.style.display = 'none';
+
+      // Aktifkan kembali opsi ChaCha20
+      if (chachaRadio && chachaCard) {
+        chachaRadio.disabled = false;
+        chachaCard.style.opacity = '1';
+        chachaCard.style.pointerEvents = 'auto';
+        chachaCard.style.cursor = 'pointer';
+      }
+    } else {
+      if (btnModePassword) {
+        btnModePassword.style.background = 'var(--surface-1)';
+        btnModePassword.style.color = 'var(--text-secondary)';
+      }
+      if (btnModeHybrid) {
+        btnModeHybrid.style.background = 'var(--surface-2)';
+        btnModeHybrid.style.color = 'var(--text-primary)';
+      }
+      if (sectionPasswordMode) sectionPasswordMode.style.display = 'none';
+      if (sectionHybridMode) sectionHybridMode.style.display = 'block';
+
+      // Hybrid selalu menggunakan AES-256-GCM, disable ChaCha20
+      if (chachaRadio && chachaCard) {
+        chachaRadio.disabled = true;
+        chachaCard.style.opacity = '0.35';
+        chachaCard.style.pointerEvents = 'none';
+        chachaCard.style.cursor = 'not-allowed';
+      }
+
+      const aesRadio = document.querySelector('input[name="algorithm"][value="AES-256-GCM"]');
+      if (aesRadio) {
+        algoCards.forEach(c => c.classList.remove('selected'));
+        aesRadio.closest('.algo-card')?.classList.add('selected');
+        aesRadio.checked = true;
+      }
+    }
+  }
+
+  if (btnModePassword) {
+    btnModePassword.addEventListener('click', () => setEncryptionMode('password'));
+  }
+  if (btnModeHybrid) {
+    btnModeHybrid.addEventListener('click', () => setEncryptionMode('hybrid'));
+  }
+
+  // SINKRONISASI FILE INPUT KE TEXTAREA PUBLIC KEY
+  if (publicKeyFileInput) {
+    publicKeyFileInput.addEventListener('change', (e) => {
+      const f = e.target.files?.[0];
+      if (!f) return;
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        if (publicKeyTextInput && evt.target?.result) {
+          publicKeyTextInput.value = evt.target.result;
+        }
+      };
+      reader.readAsText(f);
+    });
+  }
+
+  // GENERATE RSA KEY PAIR DI BROWSER
+  if (btnGenRsaKeys) {
+    btnGenRsaKeys.addEventListener('click', async () => {
+      btnGenRsaKeys.disabled = true;
+      const originalText = btnGenRsaKeys.innerHTML;
+      btnGenRsaKeys.innerHTML = '<span>Membuat Kunci RSA 2048-bit...</span>';
+      try {
+        const resp = await fetch('/generate-keys');
+        const data = await resp.json();
+        if (!resp.ok || !data.success) {
+          throw new Error(data.error || 'Gagal generate RSA keys');
+        }
+
+        // Reset file input dan masukkan public key ke textarea
+        if (publicKeyFileInput) {
+          publicKeyFileInput.value = '';
+        }
+        if (publicKeyTextInput) {
+          publicKeyTextInput.value = data.public_key;
+        }
+
+        // Otomatis download private_key.pem untuk pengguna
+        const blob = new Blob([data.private_key], { type: 'application/x-pem-file' });
+        const downloadLink = document.createElement('a');
+        downloadLink.href = URL.createObjectURL(blob);
+        downloadLink.download = 'private_key.pem';
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+        document.body.removeChild(downloadLink);
+
+        alert('Kunci RSA 2048-bit berhasil dibuat. File private_key.pem telah diunduh.');
+      } catch (err) {
+        alert('Gagal membuat kunci RSA: ' + err.message);
+      } finally {
+        btnGenRsaKeys.disabled = false;
+        btnGenRsaKeys.innerHTML = originalText;
+      }
+    });
+  }
 
   // TOGGLE LIHAT PASSWORD
   if (btnTogglePwd && passwordInput) {
@@ -117,23 +243,40 @@ document.addEventListener('DOMContentLoaded', () => {
   if (btnEncrypt) {
     btnEncrypt.addEventListener('click', async () => {
       if (!selectedFile) {
-        alert('Silakan pilih file terlebih dahulu');
+        alert('Silakan pilih file terlebih dahulu.');
         return;
       }
 
-      const password = passwordInput ? passwordInput.value : '';
-      if (!password || password.trim() === '') {
-        alert('Silakan masukkan password enkripsi');
-        return;
-      }
-
-      const selectedAlgo = document.querySelector('input[name="algorithm"]:checked')?.value || 'AES-256-GCM';
-
-      // buat form data untuk kirim file dan parameter ke backend
       const formData = new FormData();
       formData.append('file', selectedFile);
-      formData.append('algorithm', selectedAlgo);
-      formData.append('password', password);
+
+      if (currentEncryptionMode === 'hybrid') {
+        const pubText = publicKeyTextInput?.value?.trim();
+        const pubFile = publicKeyFileInput?.files?.[0];
+
+        if (!pubText && !pubFile) {
+          alert('Silakan masukkan Public Key RSA atau buat kunci baru.');
+          return;
+        }
+
+        formData.append('mode', 'hybrid');
+        formData.append('algorithm', 'AES-256-GCM');
+        if (pubText) {
+          formData.append('public_key_text', pubText);
+        } else if (pubFile) {
+          formData.append('public_key', pubFile);
+        }
+      } else {
+        const password = passwordInput ? passwordInput.value : '';
+        if (!password || password.trim() === '') {
+          alert('Silakan masukkan password enkripsi');
+          return;
+        }
+        const selectedAlgo = document.querySelector('input[name="algorithm"]:checked')?.value || 'AES-256-GCM';
+        formData.append('mode', 'password');
+        formData.append('algorithm', selectedAlgo);
+        formData.append('password', password);
+      }
 
       // ubah teks tombol saat proses
       btnEncrypt.disabled = true;
@@ -148,9 +291,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let result;
         try {
-          result = await response.json();
+          const rawText = await response.text();
+          result = JSON.parse(rawText);
         } catch (jsonErr) {
-          result = { success: false, error: `Server response error (${response.status} ${response.statusText})` };
+          result = { success: false, error: `Respons tidak valid (${response.status} ${response.statusText})` };
         }
 
         if (!response.ok || !result.success) {

@@ -1,12 +1,15 @@
 import base64
+import json
 
 from flask import Blueprint, current_app, render_template, redirect, url_for, request, jsonify
 from services.encryption_service import encrypt_file_data
 from services.sdrop_service import (
     AuthenticationError,
     SdropFormatError,
+    create_hybrid_sdrop,
     decrypt_hybrid_sdrop,
     decrypt_sdrop,
+    generate_rsa_key_pair,
     package_encryption_result,
 )
 from services.security_testing_service import run_security_testing_suite
@@ -17,6 +20,19 @@ main_bp = Blueprint("main", __name__)
 @main_bp.route("/")
 def index():
     return redirect(url_for("main.encrypt"))
+
+
+@main_bp.route("/generate-keys", methods=["GET", "POST"])
+def generate_keys():
+    try:
+        private_bytes, public_bytes = generate_rsa_key_pair(2048)
+        return jsonify({
+            "success": True,
+            "private_key": private_bytes.decode("ascii"),
+            "public_key": public_bytes.decode("ascii"),
+        }), 200
+    except Exception as err:
+        return jsonify({"success": False, "error": str(err)}), 500
 
 
 @main_bp.route("/encrypt", methods=["GET", "POST"])
@@ -33,10 +49,55 @@ def encrypt():
             return jsonify({"success": False, "error": "File tidak ditemukan"}), 400
 
         file_bytes = uploaded_file.read()
+        mode = request.form.get("mode", "password")
+        public_key_file = request.files.get("public_key")
+        public_key_text = request.form.get("public_key_text", "").strip()
+
+        # Cek apakah mode Enkripsi Hibrida
+        if mode == "hybrid" or (public_key_file and getattr(public_key_file, "filename", "")) or public_key_text:
+            pub_bytes = None
+            if public_key_text and public_key_text.strip():
+                pub_bytes = public_key_text.strip().encode("utf-8")
+            elif public_key_file and getattr(public_key_file, "filename", ""):
+                pub_bytes = public_key_file.read().strip()
+
+            if not pub_bytes:
+                return jsonify({"success": False, "error": "Public Key RSA (.pem) belum diunggah atau diisi"}), 400
+
+            sdrop_bytes = create_hybrid_sdrop(
+                file_bytes=file_bytes,
+                public_key=pub_bytes,
+                original_filename=uploaded_file.filename
+            )
+            sdrop_doc = json.loads(sdrop_bytes)
+            raw_ciphertext = base64.b64decode(sdrop_doc["ciphertext"])
+            raw_nonce = base64.b64decode(sdrop_doc["nonce"])
+            raw_tag = base64.b64decode(sdrop_doc["tag"])
+
+            return jsonify({
+                "success": True,
+                "message": "Enkripsi Hibrida (RSA-OAEP + AES-256-GCM) berhasil diproses",
+                "data": {
+                    "original_filename": uploaded_file.filename,
+                    "algorithm": "AES-256-GCM (RSA-OAEP Wrapped)",
+                    "file_size": len(file_bytes),
+                    "encrypted_size": len(raw_ciphertext),
+                    "salt_length": 0,
+                    "nonce_length": len(raw_nonce),
+                    "tag_length": len(raw_tag),
+                    "nonce_hex": raw_nonce.hex(),
+                    "tag_hex": raw_tag.hex(),
+                    "ciphertext_base64": sdrop_doc["ciphertext"],
+                    "ciphertext_hex": raw_ciphertext.hex(),
+                    "sdrop_filename": f"{uploaded_file.filename}.sdrop",
+                    "sdrop_base64": base64.b64encode(sdrop_bytes).decode("ascii")
+                }
+            }), 200
+
+        # Mode standar berbasis password
         password = request.form.get("password", "")
         algorithm = request.form.get("algorithm", "AES-256-GCM")
 
-        # jalankan enkripsi lewat service
         result = encrypt_file_data(
             file_bytes=file_bytes,
             password=password,
@@ -45,7 +106,6 @@ def encrypt():
         )
         sdrop_bytes = package_encryption_result(result)
 
-        # kirim metadata hasil enkripsi ke frontend
         return jsonify({
             "success": True,
             "message": "Enkripsi berhasil diproses",

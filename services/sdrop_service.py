@@ -178,10 +178,20 @@ def generate_rsa_key_pair(key_size: int = 2048) -> tuple[bytes, bytes]:
 def _load_public_key(key: Union[bytes, rsa.RSAPublicKey]) -> rsa.RSAPublicKey:
     if isinstance(key, rsa.RSAPublicKey):
         return key
-    loaded = serialization.load_pem_public_key(key)
-    if not isinstance(loaded, rsa.RSAPublicKey):
-        raise TypeError("Public key harus berupa RSA key.")
-    return loaded
+    try:
+        loaded = serialization.load_pem_public_key(key)
+        if isinstance(loaded, rsa.RSAPublicKey):
+            return loaded
+    except Exception:
+        # Jika pengguna mengunggah private key PEM, otomatis ekstrak public key darinya
+        try:
+            priv = serialization.load_pem_private_key(key, password=None)
+            if isinstance(priv, rsa.RSAPrivateKey):
+                return priv.public_key()
+        except Exception:
+            pass
+        raise TypeError("Public key tidak valid: pastikan menggunakan format PEM RSA.")
+    raise TypeError("Public key harus berupa RSA key.")
 
 
 def _load_private_key(key: Union[bytes, rsa.RSAPrivateKey]) -> rsa.RSAPrivateKey:

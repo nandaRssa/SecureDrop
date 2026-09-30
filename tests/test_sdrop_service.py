@@ -90,3 +90,47 @@ def test_encrypt_and_decrypt_routes_exchange_sdrop():
         assert decrypted.status_code == 200
         assert body["success"] is True
         assert base64.b64decode(body["data"]["file_base64"]) == b"route integration"
+
+
+def test_hybrid_routes_full_flow():
+    app = create_app()
+    app.config["TESTING"] = True
+    with app.test_client() as client:
+        # 1. Generate RSA key pair via route
+        gen_res = client.get("/generate-keys")
+        assert gen_res.status_code == 200
+        keys_data = gen_res.get_json()
+        assert keys_data["success"] is True
+        public_key_pem = keys_data["public_key"].encode("utf-8")
+        private_key_pem = keys_data["private_key"].encode("utf-8")
+
+        # 2. Encrypt with public key (hybrid)
+        enc_res = client.post(
+            "/encrypt",
+            data={
+                "file": (io.BytesIO(b"pesan rahasia hibrida"), "dokumen.txt"),
+                "mode": "hybrid",
+                "public_key": (io.BytesIO(public_key_pem), "public_key.pem"),
+            },
+            content_type="multipart/form-data",
+        )
+        assert enc_res.status_code == 200
+        enc_body = enc_res.get_json()
+        assert enc_body["success"] is True
+        sdrop_bytes = base64.b64decode(enc_body["data"]["sdrop_base64"])
+
+        # 3. Decrypt with private key
+        dec_res = client.post(
+            "/decrypt",
+            data={
+                "file": (io.BytesIO(sdrop_bytes), "dokumen.txt.sdrop"),
+                "private_key": (io.BytesIO(private_key_pem), "private_key.pem"),
+            },
+            content_type="multipart/form-data",
+        )
+        assert dec_res.status_code == 200
+        dec_body = dec_res.get_json()
+        assert dec_body["success"] is True
+        assert base64.b64decode(dec_body["data"]["file_base64"]) == b"pesan rahasia hibrida"
+        assert dec_body["data"]["original_filename"] == "dokumen.txt"
+
