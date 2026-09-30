@@ -54,7 +54,7 @@ def encrypt():
         public_key_text = request.form.get("public_key_text", "").strip()
 
         # Cek apakah mode Enkripsi Hibrida
-        if mode == "hybrid" or (public_key_file and getattr(public_key_file, "filename", "")) or public_key_text:
+        if mode == "hybrid":
             pub_bytes = None
             if public_key_text and public_key_text.strip():
                 pub_bytes = public_key_text.strip().encode("utf-8")
@@ -128,8 +128,8 @@ def encrypt():
 
     except (ValueError, TypeError) as err:
         return jsonify({"success": False, "error": str(err)}), 400
-    except Exception:
-        return jsonify({"success": False, "error": "Enkripsi gagal diproses"}), 500
+    except Exception as exc:
+        return jsonify({"success": False, "error": f"Enkripsi gagal diproses: {str(exc)}"}), 500
 
 
 # HALAMAN RECEIVE & DECRYPT (PLACEHOLDER)
@@ -161,8 +161,8 @@ def decrypt():
         return jsonify({"success": False, "error": str(err)}), 400
     except (SdropFormatError, ValueError, TypeError) as err:
         return jsonify({"success": False, "error": str(err)}), 400
-    except Exception:
-        return jsonify({"success": False, "error": "Decryption gagal diproses"}), 500
+    except Exception as exc:
+        return jsonify({"success": False, "error": f"Decryption gagal diproses: {str(exc)}"}), 500
 
 
 # HALAMAN TESTING (PLACEHOLDER)
