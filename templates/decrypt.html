@@ -26,35 +26,108 @@ block content %}
     </div>
 
     <h3 class="card-title">
-      <span class="step-number">2</span>Password / RSA Private Key
+      <span class="step-number">2</span>Kunci Dekripsi
     </h3>
-    <div class="form-group">
-      <label for="decryptPassword" class="form-label"
-        >Password untuk paket biasa</label
+
+    <!-- Mode Selector di Dekrip -->
+    <div style="display: flex; gap: 10px; margin-bottom: 16px;">
+      <button
+        type="button"
+        class="btn-mode active"
+        id="btnDecryptModePassword"
+        style="flex: 1; padding: 10px 14px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); background: var(--surface-2); color: var(--text-primary); cursor: pointer; font-weight: 600; font-size: 13px; text-align: center;"
       >
-      <input
-        id="decryptPassword"
-        name="password"
-        class="input-text"
-        type="password"
-        autocomplete="off"
-        placeholder="Masukkan password .sdrop"
-      />
-      <label for="privateKey" class="form-label" style="margin-top: 12px"
-        >Private key PEM untuk paket hybrid (opsional)</label
+        Password Biasa (KDF)
+      </button>
+      <button
+        type="button"
+        class="btn-mode"
+        id="btnDecryptModeHybrid"
+        style="flex: 1; padding: 10px 14px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); background: var(--surface-1); color: var(--text-secondary); cursor: pointer; font-weight: 600; font-size: 13px; text-align: center;"
       >
-      <input
-        id="privateKey"
-        name="private_key"
-        class="input-text"
-        type="file"
-        accept=".pem,.key,text/plain"
-      />
-      <p class="form-hint">
-        Private key diproses hanya untuk permintaan ini dan tidak disimpan
-      </p>
+        Enkripsi Hibrida (RSA-OAEP)
+      </button>
     </div>
-    <button type="submit" class="btn-primary" id="btnDecrypt">
+
+    <!-- Password Mode Section -->
+    <div id="decryptSectionPassword">
+      <div class="form-group">
+        <label for="decryptPassword" class="form-label">Password .sdrop</label>
+        <input
+          id="decryptPassword"
+          name="password"
+          class="input-text"
+          type="password"
+          autocomplete="off"
+          placeholder="Masukkan password .sdrop"
+        />
+        <p class="form-hint">
+          Password diproses dengan Argon2id / PBKDF2 untuk menurunkan kunci dekripsi
+        </p>
+      </div>
+    </div>
+
+    <!-- Hybrid Mode Section -->
+    <div id="decryptSectionHybrid" style="display: none;">
+      <!-- Generator RSA Key Pair for Receiver -->
+      <div style="border: 1px dashed var(--border-color); background: var(--surface-2); border-radius: var(--radius-sm); padding: 14px 16px; margin-bottom: 16px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+          <div>
+            <strong style="color: var(--text-primary); font-size: 13px; display: flex; align-items: center; gap: 6px;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+              </svg>
+              Belum punya pasangan kunci RSA untuk menerima file?
+            </strong>
+            <p style="font-size: 12px; color: var(--text-secondary); margin: 4px 0 0 0; line-height: 1.4;">
+              Klik tombol di samping: simpan <strong style="color: var(--text-primary);">Private Key</strong> Anda, dan bagikan <strong style="color: var(--accent-primary);">Public Key</strong> ke pengirim.
+            </p>
+          </div>
+          <button type="button" id="btnGenRsaKeysDecrypt" class="btn-primary" style="font-size: 12px; padding: 8px 14px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+            <span>Generate Kunci RSA 2048-bit</span>
+          </button>
+        </div>
+
+        <!-- Output Box Public Key (Tampil setelah generate) -->
+        <div id="rsaGeneratedBox" style="display: none; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border-color);">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 8px;">
+            <span style="font-size: 12px; font-weight: 600; color: var(--text-primary);">Kunci Publik Anda (Kirim salah satu ke Pengirim):</span>
+            <div style="display: flex; gap: 8px;">
+              <button type="button" id="btnDownloadPublicKey" style="background: var(--surface-1); color: var(--accent-primary); border: 1px solid var(--accent-primary); border-radius: var(--radius-sm); font-size: 11px; padding: 4px 10px; cursor: pointer; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                <span>Download public_key.pem</span>
+              </button>
+              <button type="button" id="btnCopyPublicKey" style="background: var(--surface-1); color: var(--text-primary); border: 1px solid var(--border-color); border-radius: var(--radius-sm); font-size: 11px; padding: 4px 10px; cursor: pointer; font-weight: 600;">
+                Salin Teks
+              </button>
+            </div>
+          </div>
+          <textarea id="generatedPublicKeyText" readonly class="input-text" rows="4" style="font-family: var(--font-mono); font-size: 11px; resize: vertical; background: var(--surface-1);"></textarea>
+          <div style="margin-top: 8px; font-size: 11px; color: var(--text-secondary); line-height: 1.5;">
+            <span style="color: var(--accent-primary); font-weight: 600;">✓ Selesai:</span> File <code>private_key.pem</code> (untuk Anda sendiri) dan file <code>public_key.pem</code> (untuk dikirim ke pengirim) sudah diunduh ke komputer Anda.
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="privateKey" class="form-label">
+          <span>Private key PEM untuk paket hybrid (.pem)</span>
+        </label>
+        <input
+          id="privateKey"
+          name="private_key"
+          class="input-text"
+          type="file"
+          accept=".pem,.key,text/plain"
+        />
+        <p class="form-hint">
+          Private key diproses hanya untuk permintaan dekripsi ini di memori dan tidak disimpan di server
+        </p>
+      </div>
+    </div>
+
+    <button type="submit" class="btn-primary" id="btnDecrypt" style="margin-top: 8px;">
       <span>Decrypt</span>
     </button>
   </form>
@@ -77,6 +150,128 @@ block content %}
 </section>
 {% endblock %} {% block scripts %}
 <script>
+  // TOGGLE MODE DEKRIPSI (PASSWORD vs HYBRID)
+  let currentDecryptMode = 'password';
+  const btnDecryptModePassword = document.getElementById('btnDecryptModePassword');
+  const btnDecryptModeHybrid = document.getElementById('btnDecryptModeHybrid');
+  const decryptSectionPassword = document.getElementById('decryptSectionPassword');
+  const decryptSectionHybrid = document.getElementById('decryptSectionHybrid');
+  const decryptPasswordInput = document.getElementById('decryptPassword');
+  const privateKeyInput = document.getElementById('privateKey');
+
+  function setDecryptMode(mode) {
+    currentDecryptMode = mode;
+    if (mode === 'password') {
+      btnDecryptModePassword.style.background = 'var(--surface-2)';
+      btnDecryptModePassword.style.color = 'var(--text-primary)';
+      btnDecryptModeHybrid.style.background = 'var(--surface-1)';
+      btnDecryptModeHybrid.style.color = 'var(--text-secondary)';
+
+      decryptSectionPassword.style.display = 'block';
+      decryptSectionHybrid.style.display = 'none';
+
+      // Reset private key input saat pindah ke mode password
+      if (privateKeyInput) privateKeyInput.value = '';
+    } else {
+      btnDecryptModeHybrid.style.background = 'var(--surface-2)';
+      btnDecryptModeHybrid.style.color = 'var(--text-primary)';
+      btnDecryptModePassword.style.background = 'var(--surface-1)';
+      btnDecryptModePassword.style.color = 'var(--text-secondary)';
+
+      decryptSectionPassword.style.display = 'none';
+      decryptSectionHybrid.style.display = 'block';
+
+      // Reset password input saat pindah ke mode hybrid
+      if (decryptPasswordInput) decryptPasswordInput.value = '';
+    }
+  }
+
+  if (btnDecryptModePassword) {
+    btnDecryptModePassword.addEventListener('click', () => setDecryptMode('password'));
+  }
+  if (btnDecryptModeHybrid) {
+    btnDecryptModeHybrid.addEventListener('click', () => setDecryptMode('hybrid'));
+  }
+
+  // GENERATOR KUNCI RSA PENERIMA
+  const btnGenRsaKeysDecrypt = document.getElementById("btnGenRsaKeysDecrypt");
+  const rsaGeneratedBox = document.getElementById("rsaGeneratedBox");
+  const generatedPublicKeyText = document.getElementById("generatedPublicKeyText");
+  const btnCopyPublicKey = document.getElementById("btnCopyPublicKey");
+  const btnDownloadPublicKey = document.getElementById("btnDownloadPublicKey");
+
+  function triggerDownload(content, filename) {
+    const blob = new Blob([content], { type: "application/x-pem-file" });
+    const downloadLink = document.createElement("a");
+    downloadLink.href = URL.createObjectURL(blob);
+    downloadLink.download = filename;
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    document.body.removeChild(downloadLink);
+  }
+
+  if (btnGenRsaKeysDecrypt) {
+    btnGenRsaKeysDecrypt.addEventListener("click", async () => {
+      btnGenRsaKeysDecrypt.disabled = true;
+      const originalText = btnGenRsaKeysDecrypt.innerHTML;
+      btnGenRsaKeysDecrypt.innerHTML = "<span>Membuat Kunci RSA...</span>";
+      try {
+        const resp = await fetch("/generate-keys");
+        const data = await resp.json();
+        if (!resp.ok || !data.success) {
+          throw new Error(data.error || "Gagal membuat kunci RSA");
+        }
+
+        // Tampilkan Public Key di textarea
+        generatedPublicKeyText.value = data.public_key;
+        rsaGeneratedBox.style.display = "block";
+
+        // 1. Download private_key.pem untuk penerima
+        triggerDownload(data.private_key, "private_key.pem");
+
+        // 2. Download public_key.pem untuk diberikan ke pengirim
+        setTimeout(() => {
+          triggerDownload(data.public_key, "public_key.pem");
+        }, 300);
+
+        // Otomatis pasangkan file ke input privateKey jika browser mendukung DataTransfer
+        try {
+          const blob = new Blob([data.private_key], { type: "application/x-pem-file" });
+          const file = new File([blob], "private_key.pem", { type: "application/x-pem-file" });
+          const dt = new DataTransfer();
+          dt.items.add(file);
+          privateKeyInput.files = dt.files;
+        } catch (_) {}
+      } catch (err) {
+        alert("Gagal membuat kunci RSA: " + err.message);
+      } finally {
+        btnGenRsaKeysDecrypt.disabled = false;
+        btnGenRsaKeysDecrypt.innerHTML = originalText;
+      }
+    });
+  }
+
+  if (btnDownloadPublicKey) {
+    btnDownloadPublicKey.addEventListener("click", () => {
+      if (!generatedPublicKeyText.value) return;
+      triggerDownload(generatedPublicKeyText.value, "public_key.pem");
+    });
+  }
+
+  if (btnCopyPublicKey) {
+    btnCopyPublicKey.addEventListener("click", () => {
+      if (!generatedPublicKeyText.value) return;
+      navigator.clipboard.writeText(generatedPublicKeyText.value).then(() => {
+        const originalText = btnCopyPublicKey.textContent;
+        btnCopyPublicKey.textContent = "Tersalin!";
+        setTimeout(() => {
+          btnCopyPublicKey.textContent = originalText;
+        }, 2000);
+      });
+    });
+  }
+
+  // PROSES DEKRIPSI
   document
     .getElementById("decryptForm")
     .addEventListener("submit", async (event) => {
@@ -85,6 +280,22 @@ block content %}
       const button = document.getElementById("btnDecrypt");
       const result = document.getElementById("decryptResult");
       const download = document.getElementById("downloadDecrypted");
+
+      // Validasi berdasarkan mode yang dipilih
+      if (currentDecryptMode === 'password') {
+        const pwd = decryptPasswordInput?.value?.trim();
+        if (!pwd) {
+          alert('Masukkan password .sdrop terlebih dahulu.');
+          decryptPasswordInput?.focus();
+          return;
+        }
+      } else {
+        if (!privateKeyInput?.files?.length) {
+          alert('Silakan pilih file Private Key (.pem) atau generate terlebih dahulu.');
+          return;
+        }
+      }
+
       button.disabled = true;
       result.textContent = "Memverifikasi paket dan authentication tag...";
       download.style.display = "none";
