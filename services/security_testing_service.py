@@ -410,6 +410,51 @@ def compare_algorithms(benchmark_rows: Sequence[dict[str, Any]]) -> list[dict[st
     return comparisons
 
 
+def hybrid_testing_analysis(quick: bool = False) -> dict[str, Any]:
+    from services.sdrop_service import (
+        create_hybrid_sdrop,
+        decrypt_hybrid_sdrop,
+        generate_rsa_key_pair,
+        read_sdrop,
+        AuthenticationError,
+    )
+
+    priv_bytes, pub_bytes = generate_rsa_key_pair(2048)
+    corpus = build_security_corpus()[:3] if quick else build_security_corpus()
+
+    round_trip_rows = []
+    for s in corpus:
+        pkg_bytes = create_hybrid_sdrop(s.data, pub_bytes, original_filename=s.name)
+        plain, fname = decrypt_hybrid_sdrop(pkg_bytes, priv_bytes)
+        pkg = read_sdrop(pkg_bytes)
+        round_trip_rows.append({
+            "sample": s.name,
+            "algorithm": "RSA-OAEP + AES-GCM",
+            "file_size": len(s.data),
+            "wrapped_key_size": len(pkg.encrypted_key) if pkg.encrypted_key else 256,
+            "ciphertext_size": len(pkg.ciphertext),
+            "package_size": len(pkg_bytes),
+            "round_trip_ok": plain == s.data and fname == s.name,
+        })
+
+    wrong_priv, _ = generate_rsa_key_pair(2048)
+    sample_pkg = create_hybrid_sdrop(b"Security testing payload", pub_bytes, original_filename="test.bin")
+
+    integrity_checks = []
+    try:
+        decrypt_hybrid_sdrop(sample_pkg, wrong_priv)
+        integrity_checks.append({"name": "wrong_private_key", "passed": False, "detail": "Dekripsi dengan kunci privat salah tidak boleh berhasil."})
+    except AuthenticationError as e:
+        integrity_checks.append({"name": "wrong_private_key", "passed": True, "detail": str(e)})
+
+    return {
+        "round_trip": round_trip_rows,
+        "round_trip_success": sum(1 for r in round_trip_rows if r["round_trip_ok"]),
+        "round_trip_total": len(round_trip_rows),
+        "integrity": integrity_checks,
+    }
+
+
 def run_security_testing_suite(
     files: Sequence[Any] | None = None,
     quick: bool = False,
@@ -440,6 +485,7 @@ def run_security_testing_suite(
         "avalanche": avalanche_analysis(),
         "entropy": entropy_and_histogram_analysis(),
         "integrity": integrity_analysis(),
+        "hybrid": hybrid_testing_analysis(quick=quick),
         "round_trip_success": sum(1 for row in round_trip_rows if row["round_trip_ok"]),
         "round_trip_total": len(round_trip_rows),
     }

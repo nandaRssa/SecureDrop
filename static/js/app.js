@@ -383,6 +383,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const entropyHistogramWrap = document.getElementById('entropyHistogramWrap');
   const integrityTableWrap = document.getElementById('integrityTableWrap');
   const comparisonTableWrap = document.getElementById('comparisonTableWrap');
+  const hybridTableWrap = document.getElementById('hybridTableWrap');
 
   const securityTestingCorpus = [];
 
@@ -553,6 +554,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const metrics = [
         { label: 'Total input', value: report.corpus.length, help: '10 input tercakup, termasuk PDF dan image' },
         { label: 'Round-trip sukses', value: `${report.round_trip_success}/${report.round_trip_total}`, help: 'Encrypt → package → decrypt' },
+        { label: 'Enkripsi hibrida', value: `${report.hybrid?.round_trip_success ?? 0}/${report.hybrid?.round_trip_total ?? 0} PASS`, help: 'RSA-OAEP 2048 + AES-GCM' },
         { label: 'Benchmark mode', value: report.quick_mode ? 'quick' : 'full', help: 'Mode otomatis mengikuti environment' },
         { label: 'Integrity check', value: `${report.integrity.filter((item) => item.passed).length}/${report.integrity.length}`, help: 'Wrong password, tamper, corrupt' },
       ];
@@ -627,6 +629,22 @@ document.addEventListener('DOMContentLoaded', () => {
       ]);
       comparisonTableWrap.innerHTML = renderTable(
         ['Ukuran', 'AES enc', 'ChaCha enc', 'AES dec', 'ChaCha dec', 'Faster enc', 'Faster dec'],
+        rows,
+      );
+    }
+
+    if (hybridTableWrap && report.hybrid) {
+      const rows = (report.hybrid.round_trip || []).map((item) => [
+        escapeHtml(item.sample),
+        escapeHtml(item.algorithm),
+        escapeHtml(item.file_size),
+        escapeHtml(item.wrapped_key_size),
+        escapeHtml(item.ciphertext_size),
+        escapeHtml(item.package_size),
+        `<span class="status-pill ${item.round_trip_ok ? 'status-ok' : 'status-fail'}">${item.round_trip_ok ? 'PASS' : 'FAIL'}</span>`,
+      ]);
+      hybridTableWrap.innerHTML = renderTable(
+        ['Sample', 'Metode', 'Plaintext (B)', 'Wrapped Key (B)', 'Ciphertext (B)', 'Total Package (B)', 'Status'],
         rows,
       );
     }
